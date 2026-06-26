@@ -6,12 +6,24 @@ const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
 
 let supabase: ReturnType<typeof createClient> | null = null;
 
-if (supabaseUrl && supabaseKey) {
+function isValidUrl(url: string): boolean {
+  try {
+    const u = new URL(url);
+    return u.protocol === 'http:' || u.protocol === 'https:';
+  } catch {
+    return false;
+  }
+}
+
+if (supabaseUrl && supabaseKey && isValidUrl(supabaseUrl)) {
   try {
     supabase = createClient(supabaseUrl, supabaseKey);
+    console.log('Supabase client initialized');
   } catch (e) {
     console.warn('Failed to initialize Supabase client:', e);
   }
+} else if (supabaseUrl && !isValidUrl(supabaseUrl)) {
+  console.warn('Invalid Supabase URL format:', supabaseUrl);
 }
 
 function getClient() {
