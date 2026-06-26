@@ -15,7 +15,6 @@ import { getCurrentUser, logout, canEdit, canAdd, canDelete, type User } from '.
 import { importFromJSON, exportToJSON, exportToCSV, exportRescuedJSON, exportRescuedCSV } from './utils/export';
 import { generateAutoNotifications, requestNotificationPermission } from './utils/notifications';
 import { SAMPLE_MARKERS } from './data/sampleData';
-import { isConfigured as isSupabaseConfigured, loadMarkersFromDB, saveMarkerToDB, deleteMarkerFromDB, loadRescuedFromDB, saveRescuedToDB } from './utils/supabase';
 import type { MapMarker, MarkerType, RescuedPerson } from './types';
 
 // ===== IMPORT MODAL =====
@@ -99,53 +98,31 @@ function App() {
 
   // Load markers, check auth, and generate notifications on mount
   useEffect(() => {
-    async function init() {
-      const useCloud = isSupabaseConfigured();
-      let markerData: MapMarker[] = [];
-      let rescuedData: RescuedPerson[] = [];
-
-      if (useCloud) {
-        try {
-          markerData = await loadMarkersFromDB();
-          rescuedData = await loadRescuedFromDB();
-        } catch {
-          console.warn('Failed to load from Supabase, falling back to localStorage');
-        }
-      }
-
-      if (markerData.length === 0) {
-        markerData = loadMarkers();
-      }
-
-      if (markerData.length === 0) {
-        saveMarkers(SAMPLE_MARKERS);
-        markerData = SAMPLE_MARKERS;
-      }
-
-      if (rescuedData.length === 0) {
-        try {
-          const saved = localStorage.getItem('rescued_persons');
-          if (saved) rescuedData = JSON.parse(saved);
-        } catch { /* ignore */ }
-      }
-
-      setMarkers(markerData);
-      if (rescuedData.length > 0) setRescuedPersons(rescuedData);
-      generateAutoNotifications(markerData);
-    }
-
     setUser(getCurrentUser());
     requestNotificationPermission();
-    init();
+
+    let markerData = loadMarkers();
+    if (markerData.length === 0) {
+      saveMarkers(SAMPLE_MARKERS);
+      markerData = SAMPLE_MARKERS;
+    }
+    setMarkers(markerData);
+    generateAutoNotifications(markerData);
+
+    // Load rescued persons from localStorage
+    try {
+      const saved = localStorage.getItem('rescued_persons');
+      if (saved) {
+        const rescuedData: RescuedPerson[] = JSON.parse(saved);
+        if (rescuedData.length > 0) setRescuedPersons(rescuedData);
+      }
+    } catch { /* ignore */ }
   }, []);
 
   const handleAddRescued = useCallback((person: RescuedPerson) => {
     setRescuedPersons(prev => {
       const updated = [...prev, person];
       localStorage.setItem('rescued_persons', JSON.stringify(updated));
-      if (isSupabaseConfigured()) {
-        saveRescuedToDB(person).catch(console.warn);
-      }
       return updated;
     });
   }, []);
@@ -178,9 +155,6 @@ function App() {
   const handleDeleteMarker = useCallback((id: string) => {
     const updated = deleteMarker(id);
     setMarkers(updated);
-    if (isSupabaseConfigured()) {
-      deleteMarkerFromDB(id).catch(console.warn);
-    }
     if (selectedId === id) setSelectedId(null);
   }, [selectedId]);
 
@@ -216,9 +190,6 @@ function App() {
       updated = addMarker(marker);
     }
     setMarkers(updated);
-    if (isSupabaseConfigured()) {
-      saveMarkerToDB(marker).catch(console.warn);
-    }
     setShowForm(false);
     setEditingMarker(null);
     setNewMarkerCoords(null);
