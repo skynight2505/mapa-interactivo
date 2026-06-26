@@ -7,7 +7,11 @@ const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
 let supabase: ReturnType<typeof createClient> | null = null;
 
 if (supabaseUrl && supabaseKey) {
-  supabase = createClient(supabaseUrl, supabaseKey);
+  try {
+    supabase = createClient(supabaseUrl, supabaseKey);
+  } catch (e) {
+    console.warn('Failed to initialize Supabase client:', e);
+  }
 }
 
 function getClient() {
