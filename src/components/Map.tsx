@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useCallback } from 'react';
+import React, { useEffect, useRef } from 'react';
 import type { MapMarker, MarkerType, RescuedPerson } from '../types';
 import { CATEGORIES } from '../utils/categories';
 
@@ -28,124 +28,90 @@ interface GoogleMapProps {
   onHighlightRescuedClear?: () => void;
 }
 
-// Simple distance-based clustering
 function clusterPersons(persons: RescuedPerson[], minDistance: number = 0.003): Cluster[] {
   if (persons.length === 0) return [];
-
   const clusters: Cluster[] = [];
   const used = new Set<string>();
-
   for (const person of persons) {
     if (used.has(person.id)) continue;
-
-    const cluster: RescuedPerson[] = [person];
+    const group: RescuedPerson[] = [person];
     used.add(person.id);
-
     for (const other of persons) {
       if (used.has(other.id)) continue;
-      const dist = Math.sqrt(
-        Math.pow(person.lat - other.lat, 2) + Math.pow(person.lng - other.lng, 2)
-      );
+      const dist = Math.sqrt(Math.pow(person.lat - other.lat, 2) + Math.pow(person.lng - other.lng, 2));
       if (dist < minDistance) {
-        cluster.push(other);
+        group.push(other);
         used.add(other.id);
       }
     }
-
-    const avgLat = cluster.reduce((s, p) => s + p.lat, 0) / cluster.length;
-    const avgLng = cluster.reduce((s, p) => s + p.lng, 0) / cluster.length;
-    clusters.push({ lat: avgLat, lng: avgLng, persons: cluster, count: cluster.length });
+    const avgLat = group.reduce((s, p) => s + p.lat, 0) / group.length;
+    const avgLng = group.reduce((s, p) => s + p.lng, 0) / group.length;
+    clusters.push({ lat: avgLat, lng: avgLng, persons: group, count: group.length });
   }
-
   return clusters;
 }
 
+function createPinSvg(type: MarkerType, isSelected: boolean): string {
+  const cat = CATEGORIES[type];
+  const size = isSelected ? 44 : 36;
+  const r = size / 2 - 2;
+  const cx = size / 2;
+  const cy = size / 2;
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
+    <circle cx="${cx}" cy="${cy}" r="${r}" fill="${cat.color}" stroke="${isSelected ? '#fff' : 'transparent'}" stroke-width="${isSelected ? 3 : 0}" opacity="${isSelected ? 1 : 0.9}"/>
+    <text x="${cx}" y="${cy + 2}" text-anchor="middle" dominant-baseline="central" font-size="${size * 0.45}">${cat.icon}</text>
+  </svg>`;
+}
+
+function createClusterSvg(count: number): string {
+  const size = Math.min(60, 40 + count * 4);
+  const color = count >= 10 ? '#EF4444' : count >= 5 ? '#F59E0B' : '#22C55E';
+  const cx = size / 2;
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
+    <circle cx="${cx}" cy="${cx}" r="${cx - 2}" fill="${color}" stroke="#fff" stroke-width="2" opacity="0.9"/>
+    <text x="${cx}" y="${cx - 4}" text-anchor="middle" dominant-baseline="central" font-size="${size * 0.25}" fill="#fff" font-weight="bold">🏥</text>
+    <text x="${cx}" y="${cx + 8}" text-anchor="middle" dominant-baseline="central" font-size="${size * 0.3}" fill="#fff" font-weight="bold">${count}</text>
+  </svg>`;
+}
+
+function createRescuedSvg(condition: string): string {
+  const color = condition === 'bueno' ? '#22C55E' : condition === 'herido' ? '#F59E0B' : '#EF4444';
+  const icon = condition === 'bueno' ? '✅' : condition === 'herido' ? '⚠️' : '🚑';
+  const size = 28;
+  const cx = size / 2;
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
+    <circle cx="${cx}" cy="${cx}" r="${cx - 2}" fill="${color}" stroke="#fff" stroke-width="2" opacity="0.95"/>
+    <text x="${cx}" y="${cx + 2}" text-anchor="middle" dominant-baseline="central" font-size="${size * 0.5}">${icon}</text>
+  </svg>`;
+}
+
+function svgToElement(svgStr: string): Element {
+  const el = document.createElement('div');
+  el.innerHTML = svgStr;
+  const svg = el.firstElementChild!;
+  return svg;
+}
+
 const GoogleMap: React.FC<GoogleMapProps> = ({
-  markers,
-  activeFilters,
-  selectedId,
-  onMarkerClick,
-  onMapClick,
-  rescuedPersons = [],
-  showRescuedLayer = false,
-  onToggleRescuedLayer,
-  highlightedRescuedId,
-  onHighlightRescuedClear,
+  markers, activeFilters, selectedId, onMarkerClick, onMapClick,
+  rescuedPersons = [], showRescuedLayer = false, onToggleRescuedLayer,
+  highlightedRescuedId, onHighlightRescuedClear,
 }) => {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<google.maps.Map | null>(null);
-  const markersMapRef = useRef<Map<string, google.maps.Marker>>(new Map());
-  const rescuedMarkersRef = useRef<google.maps.Marker[]>([]);
-  const clusterMarkersRef = useRef<google.maps.Marker[]>([]);
+  const markersMapRef = useRef<Map<string, google.maps.marker.AdvancedMarkerElement>>(new Map());
+  const rescuedMarkersRef = useRef<google.maps.marker.AdvancedMarkerElement[]>([]);
+  const clusterMarkersRef = useRef<google.maps.marker.AdvancedMarkerElement[]>([]);
   const infoWindowRef = useRef<google.maps.InfoWindow | null>(null);
 
   const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || '';
 
-  // Filter markers
   const visibleMarkers = activeFilters.length === 0
     ? markers
     : markers.filter((m) => activeFilters.includes(m.type));
 
-  // Create custom marker icon
-  const createMarkerIcon = useCallback((type: MarkerType, isSelected: boolean) => {
-    const cat = CATEGORIES[type];
-    const size = isSelected ? 44 : 36;
-    const svg = `
-      <svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
-        <circle cx="${size / 2}" cy="${size / 2}" r="${size / 2 - 2}" fill="${cat.color}" stroke="${isSelected ? '#fff' : 'transparent'}" stroke-width="${isSelected ? 3 : 0}" opacity="${isSelected ? 1 : 0.9}"/>
-        <text x="${size / 2}" y="${size / 2 + 1}" text-anchor="middle" dominant-baseline="central" font-size="${size * 0.45}">${cat.icon}</text>
-      </svg>
-    `;
-    return {
-      url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`,
-      size: new google.maps.Size(size, size),
-      scaledSize: new google.maps.Size(size, size),
-      anchor: new google.maps.Point(size / 2, size / 2),
-    };
-  }, []);
-
-  // Create cluster icon
-  const createClusterIcon = useCallback((count: number) => {
-    const size = Math.min(60, 40 + count * 4);
-    const color = count >= 10 ? '#EF4444' : count >= 5 ? '#F59E0B' : '#22C55E';
-    const svg = `
-      <svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
-        <circle cx="${size / 2}" cy="${size / 2}" r="${size / 2 - 2}" fill="${color}" stroke="#fff" stroke-width="2" opacity="0.9"/>
-        <text x="${size / 2}" y="${size / 2 - 2}" text-anchor="middle" dominant-baseline="central" font-size="${size * 0.25}" fill="#fff" font-weight="bold">🏥</text>
-        <text x="${size / 2}" y="${size / 2 + 10}" text-anchor="middle" dominant-baseline="central" font-size="${size * 0.3}" fill="#fff" font-weight="bold">${count}</text>
-      </svg>
-    `;
-    return {
-      url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`,
-      size: new google.maps.Size(size, size),
-      scaledSize: new google.maps.Size(size, size),
-      anchor: new google.maps.Point(size / 2, size / 2),
-    };
-  }, []);
-
-  // Create rescued person icon
-  const createRescuedIcon = useCallback((condition: string) => {
-    const color = condition === 'bueno' ? '#22C55E' : condition === 'herido' ? '#F59E0B' : '#EF4444';
-    const icon = condition === 'bueno' ? '✅' : condition === 'herido' ? '⚠️' : '🚑';
-    const size = 28;
-    const svg = `
-      <svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
-        <circle cx="${size / 2}" cy="${size / 2}" r="${size / 2 - 2}" fill="${color}" stroke="#fff" stroke-width="2" opacity="0.95"/>
-        <text x="${size / 2}" y="${size / 2 + 1}" text-anchor="middle" dominant-baseline="central" font-size="${size * 0.5}">${icon}</text>
-      </svg>
-    `;
-    return {
-      url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`,
-      size: new google.maps.Size(size, size),
-      scaledSize: new google.maps.Size(size, size),
-      anchor: new google.maps.Point(size / 2, size / 2),
-    };
-  }, []);
-
-  // Initialize Google Maps
   useEffect(() => {
     if (!mapRef.current || mapInstanceRef.current) return;
-
     if (!apiKey) return;
 
     if (window.google?.maps) {
@@ -154,7 +120,7 @@ const GoogleMap: React.FC<GoogleMapProps> = ({
     }
 
     const script = document.createElement('script');
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places&language=es`;
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places,marker&language=es&loading=async`;
     script.async = true;
     script.defer = true;
     window.initGoogleMaps = () => initMap();
@@ -179,7 +145,7 @@ const GoogleMap: React.FC<GoogleMapProps> = ({
         { elementType: 'labels.text.fill', stylers: [{ color: '#8ec3b9' }] },
         { elementType: 'labels.text.stroke', stylers: [{ color: '#1a3646' }] },
         { featureType: 'administrative.country', elementType: 'geometry.stroke', stylers: [{ color: '#4b6878' }] },
-        { featureType: 'land', elementType: 'geometry', stylers: [{ color: '#16213e' }] },
+        { featureType: 'landscape', elementType: 'geometry', stylers: [{ color: '#16213e' }] },
         { featureType: 'poi', elementType: 'geometry', stylers: [{ color: '#283e59' }] },
         { featureType: 'poi', elementType: 'labels.text.fill', stylers: [{ color: '#6f9ba5' }] },
         { featureType: 'road', elementType: 'geometry', stylers: [{ color: '#304a7d' }] },
@@ -208,44 +174,43 @@ const GoogleMap: React.FC<GoogleMapProps> = ({
     }
   }
 
-  // Sync markers with the map
   useEffect(() => {
     const map = mapInstanceRef.current;
     if (!map) return;
 
-    markersMapRef.current.forEach((marker) => marker.setMap(null));
+    markersMapRef.current.forEach((marker) => marker.map = null);
     markersMapRef.current.clear();
 
     visibleMarkers.forEach((data) => {
       const isSelected = data.id === selectedId;
-      const marker = new google.maps.Marker({
+      const svgStr = createPinSvg(data.type, isSelected);
+      const content = svgToElement(svgStr);
+
+      const marker = new google.maps.marker.AdvancedMarkerElement({
         position: { lat: data.lat, lng: data.lng },
         map,
-        icon: createMarkerIcon(data.type, isSelected),
+        content,
         title: data.title,
-        animation: isSelected ? google.maps.Animation.BOUNCE : undefined,
         zIndex: isSelected ? 1000 : 1,
       });
 
-      marker.addListener('click', () => {
-        onMarkerClick(data);
-      });
+      marker.addListener('click', () => onMarkerClick(data));
 
-      marker.addListener('mouseover', () => {
+      marker.addListener('mouseenter', () => {
         if (infoWindowRef.current) {
           const cat = CATEGORIES[data.type];
           const terrainInfo = data.terrain ? ` · ${data.terrain}` : '';
-          infoWindowRef.current.setContent(`
-            <div style="font-family:Inter,system-ui,sans-serif;padding:4px 8px;">
+          infoWindowRef.current.setContent(
+            `<div style="font-family:Inter,system-ui,sans-serif;padding:4px 8px;">
               <strong>${cat.icon} ${data.title}</strong><br/>
               <span style="font-size:11px;color:#666;">${cat.label}${terrainInfo}</span>
-            </div>
-          `);
+            </div>`
+          );
           infoWindowRef.current.open(map, marker);
         }
       });
 
-      marker.addListener('mouseout', () => {
+      marker.addListener('mouseleave', () => {
         if (infoWindowRef.current) {
           infoWindowRef.current.close();
         }
@@ -256,22 +221,20 @@ const GoogleMap: React.FC<GoogleMapProps> = ({
 
     if (selectedId) {
       const selectedMarker = markersMapRef.current.get(selectedId);
-      if (selectedMarker) {
-        map.panTo(selectedMarker.getPosition()!);
+      if (selectedMarker?.position) {
+        map.panTo(selectedMarker.position);
         if (map.getZoom()! < 14) map.setZoom(14);
       }
     }
-  }, [visibleMarkers, selectedId, createMarkerIcon, onMarkerClick]);
+  }, [visibleMarkers, selectedId, onMarkerClick]);
 
-  // Render rescued persons layer with clustering
   useEffect(() => {
     const map = mapInstanceRef.current;
     if (!map) return;
 
-    // Clear existing rescued markers
-    rescuedMarkersRef.current.forEach(m => m.setMap(null));
+    rescuedMarkersRef.current.forEach(m => m.map = null);
     rescuedMarkersRef.current = [];
-    clusterMarkersRef.current.forEach(m => m.setMap(null));
+    clusterMarkersRef.current.forEach(m => m.map = null);
     clusterMarkersRef.current = [];
 
     if (!showRescuedLayer || rescuedPersons.length === 0) return;
@@ -279,14 +242,15 @@ const GoogleMap: React.FC<GoogleMapProps> = ({
     const clusters = clusterPersons(rescuedPersons);
     const zoom = map.getZoom() || 12;
 
-    // If zoomed in enough, show individual markers; otherwise show clusters
     if (zoom >= 14 || rescuedPersons.length <= 10) {
-      // Show individual rescued person markers
       rescuedPersons.forEach(person => {
-        const marker = new google.maps.Marker({
+        const svgStr = createRescuedSvg(person.condition);
+        const content = svgToElement(svgStr);
+
+        const marker = new google.maps.marker.AdvancedMarkerElement({
           position: { lat: person.lat, lng: person.lng },
           map,
-          icon: createRescuedIcon(person.condition),
+          content,
           title: `${person.name} - ${person.condition}`,
           zIndex: 500,
         });
@@ -294,8 +258,8 @@ const GoogleMap: React.FC<GoogleMapProps> = ({
         marker.addListener('click', () => {
           if (infoWindowRef.current) {
             const terrainInfo = person.terrain ? ` · ${person.terrain}` : '';
-            infoWindowRef.current.setContent(`
-              <div style="font-family:Inter,system-ui,sans-serif;padding:6px 10px;min-width:180px;">
+            infoWindowRef.current.setContent(
+              `<div style="font-family:Inter,system-ui,sans-serif;padding:6px 10px;min-width:180px;">
                 <strong>🏥 ${person.name}</strong><br/>
                 <span style="font-size:11px;color:#666;">Edad: ${person.age} · ${person.gender}${terrainInfo}</span><br/>
                 <span style="font-size:11px;color:${person.condition === 'bueno' ? '#22C55E' : person.condition === 'herido' ? '#F59E0B' : '#EF4444'};font-weight:600;">
@@ -303,8 +267,8 @@ const GoogleMap: React.FC<GoogleMapProps> = ({
                 </span><br/>
                 <span style="font-size:10px;color:#999;">📍 ${person.zoneName}</span><br/>
                 <span style="font-size:10px;color:#999;">Rescatado por: ${person.rescuedBy || 'N/A'}</span>
-              </div>
-            `);
+              </div>`
+            );
             infoWindowRef.current.open(map, marker);
           }
         });
@@ -312,12 +276,14 @@ const GoogleMap: React.FC<GoogleMapProps> = ({
         rescuedMarkersRef.current.push(marker);
       });
     } else {
-      // Show cluster markers
       clusters.forEach(cluster => {
-        const marker = new google.maps.Marker({
+        const svgStr = createClusterSvg(cluster.count);
+        const content = svgToElement(svgStr);
+
+        const marker = new google.maps.marker.AdvancedMarkerElement({
           position: { lat: cluster.lat, lng: cluster.lng },
           map,
-          icon: createClusterIcon(cluster.count),
+          content,
           title: `${cluster.count} personas rescatadas`,
           zIndex: 600,
         });
@@ -329,12 +295,12 @@ const GoogleMap: React.FC<GoogleMapProps> = ({
                 <strong>${p.name}</strong> (${p.age}a) - <span style="color:${p.condition === 'bueno' ? '#22C55E' : p.condition === 'herido' ? '#F59E0B' : '#EF4444'};font-weight:600;">${p.condition}</span>
               </div>`
             ).join('');
-            infoWindowRef.current.setContent(`
-              <div style="font-family:Inter,system-ui,sans-serif;padding:6px 10px;max-width:250px;">
+            infoWindowRef.current.setContent(
+              `<div style="font-family:Inter,system-ui,sans-serif;padding:6px 10px;max-width:250px;">
                 <strong>🏥 ${cluster.count} Personas Rescatadas</strong><br/>
                 <div style="margin-top:6px;max-height:150px;overflow-y:auto;">${personsList}</div>
-              </div>
-            `);
+              </div>`
+            );
             infoWindowRef.current.open(map, marker);
             map.panTo({ lat: cluster.lat, lng: cluster.lng });
             map.setZoom(Math.min(zoom + 2, 18));
@@ -344,9 +310,8 @@ const GoogleMap: React.FC<GoogleMapProps> = ({
         clusterMarkersRef.current.push(marker);
       });
     }
-  }, [showRescuedLayer, rescuedPersons, createRescuedIcon, createClusterIcon]);
+  }, [showRescuedLayer, rescuedPersons]);
 
-  // Pan to highlighted rescued person from search
   useEffect(() => {
     const map = mapInstanceRef.current;
     if (!map || !highlightedRescuedId || !showRescuedLayer) return;
@@ -357,11 +322,10 @@ const GoogleMap: React.FC<GoogleMapProps> = ({
     map.panTo({ lat: person.lat, lng: person.lng });
     map.setZoom(17);
 
-    // Show info window on the highlighted person
     if (infoWindowRef.current) {
       const terrainInfo = person.terrain ? ` · ${person.terrain}` : '';
-      infoWindowRef.current.setContent(`
-        <div style="font-family:Inter,system-ui,sans-serif;padding:8px 12px;min-width:200px;">
+      infoWindowRef.current.setContent(
+        `<div style="font-family:Inter,system-ui,sans-serif;padding:8px 12px;min-width:200px;">
           <strong>🔍 ${person.name}</strong><br/>
           <span style="font-size:11px;color:#666;">${person.age} años · ${person.gender}${terrainInfo}</span><br/>
           <span style="font-size:11px;color:${person.condition === 'bueno' ? '#22C55E' : person.condition === 'herido' ? '#F59E0B' : '#EF4444'};font-weight:600;">
@@ -369,11 +333,11 @@ const GoogleMap: React.FC<GoogleMapProps> = ({
           </span><br/>
           <span style="font-size:10px;color:#999;">📍 ${person.zoneName}</span><br/>
           <span style="font-size:10px;color:#999;">Rescatado por: ${person.rescuedBy || 'N/A'}</span>
-        </div>
-      `);
-      // Find the marker for this person and open on it
+        </div>`
+      );
+
       const marker = rescuedMarkersRef.current.find(m => {
-        const pos = m.getPosition();
+        const pos = m.position as unknown as google.maps.LatLng | null;
         return pos && Math.abs(pos.lat() - person.lat) < 0.0001 && Math.abs(pos.lng() - person.lng) < 0.0001;
       });
       if (marker) {
@@ -384,7 +348,6 @@ const GoogleMap: React.FC<GoogleMapProps> = ({
       }
     }
 
-    // Clear highlight after a delay
     const timer = setTimeout(() => {
       if (onHighlightRescuedClear) onHighlightRescuedClear();
     }, 3000);
@@ -419,8 +382,6 @@ const GoogleMap: React.FC<GoogleMapProps> = ({
   return (
     <div className="map-container">
       <div ref={mapRef} style={{ width: '100%', height: '100%' }} />
-
-      {/* Rescued persons layer toggle */}
       {onToggleRescuedLayer && (
         <div className="map-layer-toggle">
           <button
