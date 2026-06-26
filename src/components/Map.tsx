@@ -129,8 +129,17 @@ const GoogleMap: React.FC<GoogleMapProps> = ({
     script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&language=es&loading=async`;
     script.async = true;
     script.defer = true;
-    script.onload = () => initMap();
-    script.onerror = () => setMapError('No se pudo cargar Google Maps. Verifica tu conexión y que la API Key sea válida.');
+    script.onload = () => {
+      setTimeout(initMap, 100);
+    };
+    script.onerror = () => {
+      const errMsg = document.querySelector('script[src*="maps.googleapis"]')?.textContent || '';
+      if (errMsg.includes('API key')) {
+        setMapError('La API Key de Google Maps no es válida o no tiene habilitada la "Maps JavaScript API". Ve a console.cloud.google.com → APIs & Services → Library y actívala.');
+      } else {
+        setMapError('No se pudo cargar Google Maps. Verifica tu conexión y que la API Key sea válida.');
+      }
+    };
     document.head.appendChild(script);
 
     return () => {
@@ -142,7 +151,12 @@ const GoogleMap: React.FC<GoogleMapProps> = ({
 
   function initMap() {
     if (!mapRef.current || mapInstanceRef.current) return;
-    const map = new google.maps.Map(mapRef.current, {
+    try {
+      if (!google.maps.Map) {
+        setMapError('Google Maps API no cargó correctamente. Recarga la página o verifica tu API Key.');
+        return;
+      }
+      const map = new google.maps.Map(mapRef.current, {
       center: { lat: 10.4806, lng: -66.9036 },
       zoom: 12,
       styles: [
@@ -173,6 +187,16 @@ const GoogleMap: React.FC<GoogleMapProps> = ({
       map.addListener('click', (e: google.maps.MapMouseEvent) => {
         if (e.latLng) onMapClick(e.latLng.lat(), e.latLng.lng());
       });
+    }
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      if (msg.includes('ApiTargetBlocked') || msg.includes('NotACell')) {
+        setMapError('Google Maps bloqueado por restricciones de la API Key. Verifica que el dominio ' + window.location.hostname + ' esté permitido en console.cloud.google.com.');
+      } else if (msg.includes('InvalidKey') || msg.includes('invalid')) {
+        setMapError('La API Key de Google Maps no es válida. Verifícala en console.cloud.google.com.');
+      } else {
+        setMapError('Error al inicializar Google Maps: ' + msg);
+      }
     }
   }
 

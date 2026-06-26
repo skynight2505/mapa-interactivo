@@ -100,10 +100,84 @@ export function logout(): void {
   setCurrentUser(null);
 }
 
-export function canEdit(user: User | null): boolean {
+/** Editor y admin pueden agregar nuevos marcadores/personas */
+export function canAdd(user: User | null): boolean {
   return user !== null && (user.role === 'admin' || user.role === 'editor');
 }
 
+/** Solo admin puede editar marcadores/personas existentes */
+export function canEdit(user: User | null): boolean {
+  return user !== null && user.role === 'admin';
+}
+
+/** Solo admin puede eliminar */
 export function canDelete(user: User | null): boolean {
   return user !== null && user.role === 'admin';
+}
+
+// ===== USER MANAGEMENT (Admin) =====
+
+export function getAllUsers(): (StoredUser & { _rawPassword?: string })[] {
+  const stored = localStorage.getItem(USERS_KEY);
+  return stored ? JSON.parse(stored) : [];
+}
+
+function saveUsers(users: StoredUser[]): void {
+  localStorage.setItem(USERS_KEY, JSON.stringify(users));
+}
+
+export function addUser(
+  username: string,
+  password: string,
+  role: UserRole,
+  displayName: string
+): { success: boolean; error?: string } {
+  const users = getAllUsers();
+  if (users.find(u => u.username === username)) {
+    return { success: false, error: 'El usuario ya existe' };
+  }
+  users.push({
+    username,
+    passwordHash: simpleHash(password),
+    role,
+    displayName: displayName || username,
+  });
+  saveUsers(users);
+  return { success: true };
+}
+
+export function removeUser(username: string): { success: boolean; error?: string } {
+  if (username === 'admin') {
+    return { success: false, error: 'No puedes eliminar al administrador principal' };
+  }
+  const users = getAllUsers().filter(u => u.username !== username);
+  saveUsers(users);
+  return { success: true };
+}
+
+export function updateUserRole(
+  username: string,
+  role: UserRole
+): { success: boolean; error?: string } {
+  if (username === 'admin' && role !== 'admin') {
+    return { success: false, error: 'El administrador principal debe mantener su rol' };
+  }
+  const users = getAllUsers();
+  const user = users.find(u => u.username === username);
+  if (!user) return { success: false, error: 'Usuario no encontrado' };
+  user.role = role;
+  saveUsers(users);
+  return { success: true };
+}
+
+export function resetUserPassword(
+  username: string,
+  newPassword: string
+): { success: boolean; error?: string } {
+  const users = getAllUsers();
+  const user = users.find(u => u.username === username);
+  if (!user) return { success: false, error: 'Usuario no encontrado' };
+  user.passwordHash = simpleHash(newPassword);
+  saveUsers(users);
+  return { success: true };
 }

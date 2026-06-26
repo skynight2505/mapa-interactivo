@@ -7,10 +7,11 @@ import GoogleMap from './components/Map';
 import MarkerPopup from './components/MarkerPopup';
 import MarkerForm from './components/MarkerForm';
 import LoginScreen from './components/LoginScreen';
+import AdminPanel from './components/AdminPanel';
 import RescuerModePanel from './components/RescuerModePanel';
 import RescuedExportPanel from './components/RescuedExportPanel';
 import { loadMarkers, saveMarkers, addMarker, updateMarker, deleteMarker } from './utils/storage';
-import { getCurrentUser, logout, canEdit, type User } from './utils/auth';
+import { getCurrentUser, logout, canEdit, canAdd, canDelete, type User } from './utils/auth';
 import { importFromJSON, exportToJSON, exportToCSV, exportRescuedJSON, exportRescuedCSV } from './utils/export';
 import { generateAutoNotifications, requestNotificationPermission } from './utils/notifications';
 import { SAMPLE_MARKERS } from './data/sampleData';
@@ -94,6 +95,7 @@ function App() {
   const [rescuedPersons, setRescuedPersons] = useState<RescuedPerson[]>([]);
   const [showRescuedLayer, setShowRescuedLayer] = useState(false);
   const [highlightedRescuedId, setHighlightedRescuedId] = useState<string | null>(null);
+  const [showAdminPanel, setShowAdminPanel] = useState(false);
 
   // Load markers, check auth, and generate notifications on mount
   useEffect(() => {
@@ -155,6 +157,8 @@ function App() {
 
   const selectedMarker = markers.find((m) => m.id === selectedId) || null;
   const userCanEdit = canEdit(user);
+  const userCanAdd = canAdd(user);
+  const userCanDelete = canDelete(user);
 
   const handleToggleFilter = useCallback((type: MarkerType) => {
     setActiveFilters((prev) =>
@@ -245,13 +249,13 @@ function App() {
   }, []);
 
   const handleToggleEdit = useCallback(() => {
-    if (!userCanEdit) {
+    if (!userCanEdit && !userCanAdd) {
       setShowLogin(true);
       return;
     }
     setIsEditMode((prev) => !prev);
     if (isRescueMode) setIsRescueMode(false);
-  }, [userCanEdit, isRescueMode]);
+  }, [userCanEdit, userCanAdd, isRescueMode]);
 
   const handleToggleRescue = useCallback(() => {
     setIsRescueMode((prev) => !prev);
@@ -281,6 +285,7 @@ function App() {
         onToggleMode={handleToggleEdit}
         markerCount={markers.length}
         user={user}
+        userCanEdit={userCanEdit}
         onLoginClick={() => setShowLogin(true)}
         onLogout={handleLogout}
         onExportJSON={() => exportToJSON(markers)}
@@ -289,6 +294,7 @@ function App() {
         onRescuedClick={() => setShowRescuedPanel(true)}
         isRescueMode={isRescueMode}
         onToggleRescue={handleToggleRescue}
+        onAdminClick={() => setShowAdminPanel(true)}
       />
 
       <FilterBar
@@ -305,9 +311,12 @@ function App() {
           onDelete={handleDeleteMarker}
           onEdit={handleEditMarker}
           isEditMode={isEditMode}
+          userCanEdit={userCanEdit}
+          userCanDelete={userCanDelete}
           collapsed={sidebarCollapsed}
           onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
           onAddNew={handleAddNew}
+          userCanAdd={userCanAdd}
         />
 
         <div className="map-container">
@@ -377,6 +386,10 @@ function App() {
             onSearchResult={handleSearchRescued}
             searchHighlight={highlightedRescuedId}
           />
+        )}
+
+        {showAdminPanel && userCanEdit && (
+          <AdminPanel onClose={() => setShowAdminPanel(false)} />
         )}
       </div>
     </div>

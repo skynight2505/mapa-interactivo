@@ -9,6 +9,7 @@ interface HeaderProps {
   onToggleMode: () => void;
   markerCount: number;
   user: User | null;
+  userCanEdit: boolean;
   onLoginClick: () => void;
   onLogout: () => void;
   onExportJSON: () => void;
@@ -17,12 +18,15 @@ interface HeaderProps {
   onRescuedClick: () => void;
   isRescueMode: boolean;
   onToggleRescue: () => void;
+  onAdminClick: () => void;
 }
 
 const Header: React.FC<HeaderProps> = ({
   isEditMode, onToggleMode, markerCount, user,
+  userCanEdit,
   onLoginClick, onLogout, onExportJSON, onExportCSV,
   onImportClick, onRescuedClick, isRescueMode, onToggleRescue,
+  onAdminClick,
 }) => {
   const { t } = useI18n();
   const [dataOpen, setDataOpen] = useState(false);
@@ -126,8 +130,17 @@ const Header: React.FC<HeaderProps> = ({
               : <><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></>
             }
           </svg>
-          {isEditMode ? t('btn.editMode') : t('btn.readOnly')}
+          {isEditMode ? (userCanEdit ? 'Edición' : 'Agregar') : 'Solo ver'}
         </button>
+
+        {userCanEdit && (
+          <button className="header-action-btn" onClick={onAdminClick} title="Administración">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            </svg>
+            Admin
+          </button>
+        )}
       </div>
     </header>
   );

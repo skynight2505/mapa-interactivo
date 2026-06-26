@@ -9,6 +9,9 @@ interface SidebarProps {
   onDelete: (id: string) => void;
   onEdit: (marker: MapMarker) => void;
   isEditMode: boolean;
+  userCanEdit: boolean;
+  userCanDelete: boolean;
+  userCanAdd: boolean;
   collapsed: boolean;
   onToggleCollapse: () => void;
   onAddNew: () => void;
@@ -21,6 +24,9 @@ const Sidebar: React.FC<SidebarProps> = ({
   onDelete,
   onEdit,
   isEditMode,
+  userCanEdit,
+  userCanDelete,
+  userCanAdd,
   collapsed,
   onToggleCollapse,
   onAddNew,
@@ -126,29 +132,33 @@ const Sidebar: React.FC<SidebarProps> = ({
                       )}
                     </div>
                   </div>
-                  {isEditMode && (
+                  {isEditMode && (userCanEdit || userCanDelete) && (
                     <div className="marker-card-actions">
-                      <button
-                        title="Editar"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onEdit(marker);
-                        }}
-                      >
-                        ✏️
-                      </button>
-                      <button
-                        title="Eliminar"
-                        className="danger"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          if (confirm('¿Eliminar esta zona?')) {
-                            onDelete(marker.id);
-                          }
-                        }}
-                      >
-                        🗑️
-                      </button>
+                      {userCanEdit && (
+                        <button
+                          title="Editar"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onEdit(marker);
+                          }}
+                        >
+                          ✏️
+                        </button>
+                      )}
+                      {userCanDelete && (
+                        <button
+                          title="Eliminar"
+                          className="danger"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (confirm('¿Eliminar esta zona?')) {
+                              onDelete(marker.id);
+                            }
+                          }}
+                        >
+                          🗑️
+                        </button>
+                      )}
                     </div>
                   )}
                 </div>
@@ -161,7 +171,7 @@ const Sidebar: React.FC<SidebarProps> = ({
           Mostrando {filtered.length} de {markers.length} zonas
         </div>
 
-        {isEditMode && (
+        {userCanAdd && (
           <div className="sidebar-footer">
             <button className="add-marker-btn" onClick={onAddNew}>
               ➕ Agregar nueva zona
