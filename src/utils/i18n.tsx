@@ -1,627 +1,821 @@
-import { createContext, useContext, useState, useCallback, type ReactNode } from 'react';
+import React, { createContext, useContext, useState, useCallback, useEffect, type ReactNode } from 'react';
 
+// ===== Language types =====
 export type Language = 'es' | 'en' | 'zh' | 'ar' | 'pt';
 
 export const LANGUAGES: Record<Language, { label: string; icon: string; dir: 'ltr' | 'rtl' }> = {
-  es: { label: 'Español', icon: '🇻🇪', dir: 'ltr' },
-  en: { label: 'English', icon: '🇺🇸', dir: 'ltr' },
+  es: { label: 'Español', icon: '🇪🇸', dir: 'ltr' },
+  en: { label: 'English', icon: '🇬🇧', dir: 'ltr' },
   zh: { label: '中文', icon: '🇨🇳', dir: 'ltr' },
   ar: { label: 'العربية', icon: '🇸🇦', dir: 'rtl' },
   pt: { label: 'Português', icon: '🇧🇷', dir: 'ltr' },
 };
 
-type TranslationKeys = {
-  // Header
+// ===== Translation keys =====
+export type TranslationKeys = {
+  // App
   'app.title': string;
   'app.subtitle': string;
-  // Buttons
+  // Header
   'btn.data': string;
   'btn.exportJson': string;
   'btn.exportCsv': string;
   'btn.importJson': string;
   'btn.rescuedPersons': string;
   'btn.rescueMode': string;
-  'btn.readOnly': string;
-  'btn.editMode': string;
-  'btn.login': string;
   'btn.logout': string;
-  // Filters
+  'btn.login': string;
+  'btn.edit': string;
+  'btn.addView': string;
+  'btn.readOnly': string;
+  'btn.admin': string;
+  // Import Modal
+  'import.title': string;
+  'import.desc': string;
+  'import.desc2': string;
+  'import.dropzone': string;
+  'import.cancel': string;
+  'import.error': string;
+  // Map
+  'map.clickToPlace': string;
+  'map.cancel': string;
+  // FilterBar
   'filter.label': string;
   'filter.clear': string;
   // Sidebar
   'sidebar.search': string;
-  'sidebar.addZone': string;
+  'sidebar.noResults': string;
+  'sidebar.noZones': string;
+  'sidebar.showing': string;
+  'sidebar.of': string;
   'sidebar.zones': string;
-  // Detail Panel
-  'detail.helpGroups': string;
-  'detail.supplies': string;
-  'detail.coords': string;
-  'detail.noGroups': string;
-  'detail.noSupplies': string;
-  // Rescue Mode
-  'rescue.badge': string;
-  'rescue.volunteers': string;
-  'rescue.services': string;
-  'rescue.tools': string;
-  'rescue.chat': string;
-  'rescue.bitchat': string;
-  // Rescued Persons
-  'rescued.title': string;
-  'rescued.search': string;
-  'rescued.noResults': string;
-  'rescued.total': string;
-  'rescued.good': string;
-  'rescued.injured': string;
-  'rescued.critical': string;
-  'rescued.addPerson': string;
-  'rescued.verifyNotice': string;
-  'rescued.exportJson': string;
-  'rescued.exportCsv': string;
-  'rescued.name': string;
-  'rescued.age': string;
-  'rescued.gender': string;
-  'rescued.male': string;
-  'rescued.female': string;
-  'rescued.other': string;
-  'rescued.condition': string;
-  'rescued.goodCondition': string;
-  'rescued.injuredCondition': string;
-  'rescued.criticalCondition': string;
-  'rescued.zone': string;
-  'rescued.terrain': string;
-  'rescued.rescuedBy': string;
-  'rescued.notes': string;
-  'rescued.lat': string;
-  'rescued.lng': string;
-  'rescued.register': string;
-  // Map
-  'map.layerToggle': string;
-  'map.placeMarker': string;
-  'map.cancel': string;
-  'map.apiRequired': string;
-  // Notifications
-  'notif.markAllRead': string;
-  'notif.empty': string;
-  // Markers
-  'marker.earthquake': string;
-  'marker.buildingCollapsed': string;
-  'marker.riskZone': string;
-  'marker.supplyCenter': string;
-  'marker.blockedRoad': string;
-  'marker.trappedPeople': string;
-  'marker.shelter': string;
-  'marker.supermarket': string;
-  'marker.foodStore': string;
-  'marker.pharmacy': string;
-  // Form
+  'sidebar.addNew': string;
+  // MarkerPopup
+  'popup.severity': string;
+  'popup.helpGroups': string;
+  'popup.noGroups': string;
+  'popup.members': string;
+  'popup.supplies': string;
+  'popup.noSupplies': string;
+  'popup.needed': string;
+  'popup.available': string;
+  'popup.delivered': string;
+  'popup.coords': string;
+  'popup.created': string;
+  'popup.updated': string;
+  // MarkerForm
+  'form.newZone': string;
+  'form.editZone': string;
   'form.zoneType': string;
   'form.title': string;
   'form.titlePlaceholder': string;
   'form.description': string;
   'form.descriptionPlaceholder': string;
-  'form.severity': string;
   'form.terrain': string;
+  'form.severity': string;
   'form.status': string;
-  'form.active': string;
-  'form.inactive': string;
-  'form.coords': string;
-  'form.save': string;
-  'form.create': string;
+  'form.sevLow': string;
+  'form.sevMed': string;
+  'form.sevHigh': string;
+  'form.sevCritical': string;
+  'form.statusActive': string;
+  'form.statusInactive': string;
+  'form.coordinates': string;
+  'form.saveChanges': string;
+  'form.createZone': string;
+  'form.helpGroups': string;
+  'form.addGroup': string;
+  'form.supplies': string;
+  'form.addSupply': string;
+  'form.groupName': string;
+  'form.groupContact': string;
+  'form.supplyName': string;
+  'form.quantity': string;
+  'form.unit': string;
   'form.cancel': string;
   // Login
   'login.title': string;
   'login.subtitle': string;
   'login.username': string;
   'login.password': string;
-  'login.error': string;
-  // Terrain
-  'terrain.urban': string;
-  'terrain.mountain': string;
-  'terrain.coastal': string;
-  'terrain.rural': string;
-  'terrain.industrial': string;
-  'terrain.mixed': string;
+  'login.usernamePlaceholder': string;
+  'login.passwordPlaceholder': string;
+  'login.submitting': string;
+  'login.submit': string;
+  // Notification
+  'notif.title': string;
+  'notif.markAllRead': string;
+  'notif.empty': string;
+  'notif.now': string;
+  'notif.minutesAgo': string;
+  'notif.hoursAgo': string;
+  'notif.daysAgo': string;
+  'notif.delete': string;
+  'notif.emergencyTitle': string;
+  // Rescuer Mode
+  'rescue.mode': string;
+  'rescue.tabVolunteers': string;
+  'rescue.tabServices': string;
+  'rescue.tabTools': string;
+  'rescue.tabChat': string;
+  'rescue.tabBitchat': string;
+  // Rescued Persons
+  'rescued.title': string;
+  'rescued.verifyTitle': string;
+  'rescued.verifyDesc': string;
+  'rescued.searchPlaceholder': string;
+  'rescued.resultsFor': string;
+  'rescued.noResults': string;
+  'rescued.total': string;
+  'rescued.goodCondition': string;
+  'rescued.injured': string;
+  'rescued.critical': string;
+  'rescued.registerPerson': string;
+  'rescued.exportJson': string;
+  'rescued.exportCsv': string;
+  'rescued.formName': string;
+  'rescued.formAge': string;
+  'rescued.formGender': string;
+  'rescued.formCondition': string;
+  'rescued.formZone': string;
+  'rescued.formTerrain': string;
+  'rescued.formRescuedBy': string;
+  'rescued.formNotes': string;
+  'rescued.formLat': string;
+  'rescued.formLng': string;
+  'rescued.formMale': string;
+  'rescued.formFemale': string;
+  'rescued.formOther': string;
+  'rescued.formGood': string;
+  'rescued.formInjured': string;
+  'rescued.formCritical': string;
+  'rescued.formSubmit': string;
+  'rescued.yearsOld': string;
+  'rescued.noRecord': string;
+  'rescued.viewOnMap': string;
+  'rescued.verifyOnSite': string;
 };
 
+// ===== Translations =====
 const translations: Record<Language, TranslationKeys> = {
   es: {
-    'app.title': '🏠 Mapa de Terremoto - Venezuela',
-    'app.subtitle': 'zonas registradas',
-    'btn.data': '📥 Datos',
-    'btn.exportJson': '📄 Exportar JSON',
+    'app.title': 'Mapa Interactivo Terremoto Venezuela',
+    'app.subtitle': 'zonas de emergencia',
+    'btn.data': 'Datos',
+    'btn.exportJson': '📥 Exportar JSON',
     'btn.exportCsv': '📊 Exportar CSV',
     'btn.importJson': '📥 Importar JSON',
     'btn.rescuedPersons': '🏥 Personas Rescatadas',
-    'btn.rescueMode': '🆘 Modo Rescatista',
-    'btn.readOnly': '👁️ Solo Lectura',
-    'btn.editMode': '✏️ Modo Edición',
-    'btn.login': '🔐 Iniciar Sesión',
-    'btn.logout': '🚪 Salir',
-    'filter.label': 'Filtros',
-    'filter.clear': '✕ Limpiar',
-    'sidebar.search': 'Buscar zona...',
-    'sidebar.addZone': '➕ Agregar Zona',
-    'sidebar.zones': 'zonas',
-    'detail.helpGroups': '👥 Grupos de Ayuda',
-    'detail.supplies': '📦 Insumos',
-    'detail.coords': '📍 Coordenadas',
-    'detail.noGroups': 'No hay grupos asignados a esta zona',
-    'detail.noSupplies': 'No hay insumos registrados',
-    'rescue.badge': '🆘 MODO RESCATISTA',
-    'rescue.volunteers': 'Voluntarios',
-    'rescue.services': 'Servicios',
-    'rescue.tools': 'Herramientas',
-    'rescue.chat': 'Chat',
-    'rescue.bitchat': 'Bitchat',
-    'rescued.title': '🏥 Personas Rescatadas',
-    'rescued.search': 'Buscar por nombre, zona o rescatista...',
-    'rescued.noResults': 'No se encontraron personas con ese término',
-    'rescued.total': 'Total',
-    'rescued.good': 'Buen Estado',
-    'rescued.injured': 'Heridos',
-    'rescued.critical': 'Crítico',
-    'rescued.addPerson': '➕ Registrar Persona Rescatada',
-    'rescued.verifyNotice': 'Puedes verificar el estado de las personas en',
-    'rescued.exportJson': '📥 Exportar JSON',
-    'rescued.exportCsv': '📊 Exportar CSV',
-    'rescued.name': 'Nombre *',
-    'rescued.age': 'Edad',
-    'rescued.gender': 'Sexo',
-    'rescued.male': '👨 Masculino',
-    'rescued.female': '👩 Femenino',
-    'rescued.other': '🧑 Otro',
-    'rescued.condition': 'Condición',
-    'rescued.goodCondition': '✅ Bueno',
-    'rescued.injuredCondition': '⚠️ Herido',
-    'rescued.criticalCondition': '🔴 Crítico',
-    'rescued.zone': 'Zona de Rescate *',
-    'rescued.terrain': 'Terreno',
-    'rescued.rescuedBy': 'Rescatado por',
-    'rescued.notes': 'Notas',
-    'rescued.lat': 'Latitud',
-    'rescued.lng': 'Longitud',
-    'rescued.register': '✅ Registrar Persona',
-    'map.layerToggle': 'Rescatados',
-    'map.placeMarker': '📍 Haz clic en el mapa para colocar la nueva zona',
+    'btn.rescueMode': 'Modo Rescatista',
+    'btn.logout': 'Salir',
+    'btn.login': 'Entrar',
+    'btn.edit': 'Edición',
+    'btn.addView': 'Agregar',
+    'btn.readOnly': 'Solo ver',
+    'btn.admin': 'Admin',
+    'import.title': '📥 Importar Datos',
+    'import.desc': 'Selecciona un archivo JSON exportado desde esta aplicación para importar los datos.',
+    'import.desc2': 'Los marcadores existentes se mantendrán y se agregarán los nuevos.',
+    'import.dropzone': '📁 Haz clic aquí para seleccionar un archivo JSON',
+    'import.cancel': 'Cancelar',
+    'import.error': 'Error al importar',
+    'map.clickToPlace': '📍 Haz clic en el mapa para colocar la nueva zona',
     'map.cancel': 'Cancelar',
-    'map.apiRequired': 'Google Maps API Key Requerida',
-    'notif.markAllRead': 'Marcar todo leído',
-    'notif.empty': 'Sin notificaciones',
-    'marker.earthquake': 'Terremoto',
-    'marker.buildingCollapsed': 'Edificio Derrumbado',
-    'marker.riskZone': 'Zona de Riesgo',
-    'marker.supplyCenter': 'Zona de Acopio',
-    'marker.blockedRoad': 'Vía Obstruida',
-    'marker.trappedPeople': 'Personas Atrapadas',
-    'marker.shelter': 'Zona Refugio',
-    'marker.supermarket': 'Supermercado',
-    'marker.foodStore': 'Tienda de Comida',
-    'marker.pharmacy': 'Farmacia',
+    'filter.label': '🔍 Filtrar:',
+    'filter.clear': '✕ Limpiar',
+    'sidebar.search': 'Buscar zonas...',
+    'sidebar.noResults': 'No se encontraron resultados',
+    'sidebar.noZones': 'No hay zonas registradas',
+    'sidebar.showing': 'Mostrando',
+    'sidebar.of': 'de',
+    'sidebar.zones': 'zonas',
+    'sidebar.addNew': '➕ Agregar nueva zona',
+    'popup.severity': 'Severidad:',
+    'popup.helpGroups': '👥 Grupos de Ayuda',
+    'popup.noGroups': 'No hay grupos asignados a esta zona',
+    'popup.members': 'miembros',
+    'popup.supplies': '📦 Insumos',
+    'popup.noSupplies': 'No hay insumos registrados',
+    'popup.needed': '⚠️ Necesitado',
+    'popup.available': '✅ Disponible',
+    'popup.delivered': '🚚 Entregado',
+    'popup.coords': '📍 Coordenadas:',
+    'popup.created': 'Creado:',
+    'popup.updated': 'Actualizado:',
+    'form.newZone': '➕ Nueva Zona',
+    'form.editZone': '✏️ Editar Zona',
     'form.zoneType': 'Tipo de Zona',
     'form.title': 'Título *',
     'form.titlePlaceholder': 'Nombre de la zona',
     'form.description': 'Descripción',
     'form.descriptionPlaceholder': 'Describe la situación en esta zona...',
-    'form.severity': 'Severidad',
     'form.terrain': '🏔️ Tipo de Terreno',
+    'form.severity': 'Severidad',
     'form.status': 'Estado',
-    'form.active': '✅ Activo / Abierto',
-    'form.inactive': '❌ Inactivo / Cerrado',
-    'form.coords': '📍 Coordenadas',
-    'form.save': '💾 Guardar Cambios',
-    'form.create': '➕ Crear Zona',
+    'form.sevLow': '🟢 Baja',
+    'form.sevMed': '🟡 Media',
+    'form.sevHigh': '🟠 Alta',
+    'form.sevCritical': '🔴 Crítica',
+    'form.statusActive': '✅ Activo / Abierto',
+    'form.statusInactive': '❌ Inactivo / Cerrado',
+    'form.coordinates': '📍 Coordenadas',
+    'form.saveChanges': '💾 Guardar Cambios',
+    'form.createZone': '➕ Crear Zona',
+    'form.helpGroups': '👥 Grupos de Ayuda',
+    'form.addGroup': '➕ Agregar grupo',
+    'form.supplies': '📦 Insumos',
+    'form.addSupply': '➕ Agregar insumo',
+    'form.groupName': 'Nombre del grupo',
+    'form.groupContact': 'Contacto (teléfono)',
+    'form.supplyName': 'Nombre del insumo',
+    'form.quantity': 'Cantidad',
+    'form.unit': 'Unidad',
     'form.cancel': 'Cancelar',
-    'login.title': '🔐 Iniciar Sesión',
-    'login.subtitle': 'Accede para editar zonas y gestionar datos',
+    'login.title': 'Acceso de Administración',
+    'login.subtitle': 'Inicia sesión para editar el mapa de terremoto',
     'login.username': 'Usuario',
     'login.password': 'Contraseña',
-    'login.error': 'Credenciales incorrectas',
-    'terrain.urban': '🏙️ Urbano',
-    'terrain.mountain': '🏔️ Montañoso',
-    'terrain.coastal': '🏖️ Costero',
-    'terrain.rural': '🌾 Rural',
-    'terrain.industrial': '🏭 Industrial',
-    'terrain.mixed': '🔀 Mixto',
+    'login.usernamePlaceholder': 'Tu usuario',
+    'login.passwordPlaceholder': 'Tu contraseña',
+    'login.submitting': '⏳ Entrando...',
+    'login.submit': '🚪 Iniciar Sesión',
+    'notif.title': 'Notificaciones',
+    'notif.markAllRead': '✅ Marcar todo leído',
+    'notif.empty': 'No hay notificaciones',
+    'notif.now': 'Ahora',
+    'notif.minutesAgo': 'Hace Xm',
+    'notif.hoursAgo': 'Hace Xh',
+    'notif.daysAgo': 'Hace Xd',
+    'notif.delete': 'Eliminar',
+    'notif.emergencyTitle': 'Notificaciones de emergencia',
+    'rescue.mode': '🆘 MODO RESCATISTA',
+    'rescue.tabVolunteers': 'Voluntarios',
+    'rescue.tabServices': 'Servicios',
+    'rescue.tabTools': 'Herramientas',
+    'rescue.tabChat': 'Chat',
+    'rescue.tabBitchat': 'Bitchat',
+    'rescued.title': '🏥 Personas Rescatadas',
+    'rescued.verifyTitle': 'Verificación de Desaparecidos',
+    'rescued.verifyDesc': 'Puedes verificar el estado de las personas en',
+    'rescued.searchPlaceholder': 'Buscar por nombre, zona o rescatista...',
+    'rescued.resultsFor': 'resultado(s) para',
+    'rescued.noResults': 'No se encontraron personas con ese término',
+    'rescued.total': 'Total',
+    'rescued.goodCondition': 'Buen Estado',
+    'rescued.injured': 'Heridos',
+    'rescued.critical': 'Crítico',
+    'rescued.registerPerson': '➕ Registrar Persona Rescatada',
+    'rescued.exportJson': '📥 Exportar JSON',
+    'rescued.exportCsv': '📊 Exportar CSV',
+    'rescued.formName': 'Nombre *',
+    'rescued.formAge': 'Edad',
+    'rescued.formGender': 'Sexo',
+    'rescued.formCondition': 'Condición',
+    'rescued.formZone': 'Zona de Rescate *',
+    'rescued.formTerrain': 'Terreno',
+    'rescued.formRescuedBy': 'Rescatado por',
+    'rescued.formNotes': 'Notas',
+    'rescued.formLat': 'Latitud',
+    'rescued.formLng': 'Longitud',
+    'rescued.formMale': '👨 Masculino',
+    'rescued.formFemale': '👩 Femenino',
+    'rescued.formOther': '🧑 Otro',
+    'rescued.formGood': '✅ Bueno',
+    'rescued.formInjured': '⚠️ Herido',
+    'rescued.formCritical': '🔴 Crítico',
+    'rescued.formSubmit': '✅ Registrar Persona',
+    'rescued.yearsOld': 'años',
+    'rescued.noRecord': 'Sin registro',
+    'rescued.viewOnMap': 'Ver en mapa',
+    'rescued.verifyOnSite': 'Verificar en desaparecidos',
   },
   en: {
-    'app.title': '🏠 Earthquake Map - Venezuela',
-    'app.subtitle': 'registered zones',
-    'btn.data': '📥 Data',
-    'btn.exportJson': '📄 Export JSON',
+    'app.title': 'Interactive Earthquake Map Venezuela',
+    'app.subtitle': 'emergency zones',
+    'btn.data': 'Data',
+    'btn.exportJson': '📥 Export JSON',
     'btn.exportCsv': '📊 Export CSV',
     'btn.importJson': '📥 Import JSON',
     'btn.rescuedPersons': '🏥 Rescued Persons',
-    'btn.rescueMode': '🆘 Rescue Mode',
-    'btn.readOnly': '👁️ Read Only',
-    'btn.editMode': '✏️ Edit Mode',
-    'btn.login': '🔐 Login',
-    'btn.logout': '🚪 Logout',
-    'filter.label': 'Filters',
-    'filter.clear': '✕ Clear',
-    'sidebar.search': 'Search zone...',
-    'sidebar.addZone': '➕ Add Zone',
-    'sidebar.zones': 'zones',
-    'detail.helpGroups': '👥 Help Groups',
-    'detail.supplies': '📦 Supplies',
-    'detail.coords': '📍 Coordinates',
-    'detail.noGroups': 'No groups assigned to this zone',
-    'detail.noSupplies': 'No supplies registered',
-    'rescue.badge': '🆘 RESCUE MODE',
-    'rescue.volunteers': 'Volunteers',
-    'rescue.services': 'Services',
-    'rescue.tools': 'Tools',
-    'rescue.chat': 'Chat',
-    'rescue.bitchat': 'Bitchat',
-    'rescued.title': '🏥 Rescued Persons',
-    'rescued.search': 'Search by name, zone or rescuer...',
-    'rescued.noResults': 'No persons found matching that term',
-    'rescued.total': 'Total',
-    'rescued.good': 'Good Condition',
-    'rescued.injured': 'Injured',
-    'rescued.critical': 'Critical',
-    'rescued.addPerson': '➕ Register Rescued Person',
-    'rescued.verifyNotice': 'You can verify the status of persons at',
-    'rescued.exportJson': '📥 Export JSON',
-    'rescued.exportCsv': '📊 Export CSV',
-    'rescued.name': 'Name *',
-    'rescued.age': 'Age',
-    'rescued.gender': 'Gender',
-    'rescued.male': '👨 Male',
-    'rescued.female': '👩 Female',
-    'rescued.other': '🧑 Other',
-    'rescued.condition': 'Condition',
-    'rescued.goodCondition': '✅ Good',
-    'rescued.injuredCondition': '⚠️ Injured',
-    'rescued.criticalCondition': '🔴 Critical',
-    'rescued.zone': 'Rescue Zone *',
-    'rescued.terrain': 'Terrain',
-    'rescued.rescuedBy': 'Rescued by',
-    'rescued.notes': 'Notes',
-    'rescued.lat': 'Latitude',
-    'rescued.lng': 'Longitude',
-    'rescued.register': '✅ Register Person',
-    'map.layerToggle': 'Rescued',
-    'map.placeMarker': '📍 Click on the map to place the new zone',
+    'btn.rescueMode': 'Rescue Mode',
+    'btn.logout': 'Logout',
+    'btn.login': 'Login',
+    'btn.edit': 'Editing',
+    'btn.addView': 'Add',
+    'btn.readOnly': 'View only',
+    'btn.admin': 'Admin',
+    'import.title': '📥 Import Data',
+    'import.desc': 'Select a JSON file exported from this application to import the data.',
+    'import.desc2': 'Existing markers will be kept and new ones will be added.',
+    'import.dropzone': '📁 Click here to select a JSON file',
+    'import.cancel': 'Cancel',
+    'import.error': 'Import error',
+    'map.clickToPlace': '📍 Click on the map to place the new zone',
     'map.cancel': 'Cancel',
-    'map.apiRequired': 'Google Maps API Key Required',
-    'notif.markAllRead': 'Mark all read',
-    'notif.empty': 'No notifications',
-    'marker.earthquake': 'Earthquake',
-    'marker.buildingCollapsed': 'Building Collapsed',
-    'marker.riskZone': 'Risk Zone',
-    'marker.supplyCenter': 'Supply Center',
-    'marker.blockedRoad': 'Blocked Road',
-    'marker.trappedPeople': 'Trapped People',
-    'marker.shelter': 'Shelter',
-    'marker.supermarket': 'Supermarket',
-    'marker.foodStore': 'Food Store',
-    'marker.pharmacy': 'Pharmacy',
+    'filter.label': '🔍 Filter:',
+    'filter.clear': '✕ Clear',
+    'sidebar.search': 'Search zones...',
+    'sidebar.noResults': 'No results found',
+    'sidebar.noZones': 'No zones registered',
+    'sidebar.showing': 'Showing',
+    'sidebar.of': 'of',
+    'sidebar.zones': 'zones',
+    'sidebar.addNew': '➕ Add new zone',
+    'popup.severity': 'Severity:',
+    'popup.helpGroups': '👥 Help Groups',
+    'popup.noGroups': 'No groups assigned to this zone',
+    'popup.members': 'members',
+    'popup.supplies': '📦 Supplies',
+    'popup.noSupplies': 'No supplies registered',
+    'popup.needed': '⚠️ Needed',
+    'popup.available': '✅ Available',
+    'popup.delivered': '🚚 Delivered',
+    'popup.coords': '📍 Coordinates:',
+    'popup.created': 'Created:',
+    'popup.updated': 'Updated:',
+    'form.newZone': '➕ New Zone',
+    'form.editZone': '✏️ Edit Zone',
     'form.zoneType': 'Zone Type',
     'form.title': 'Title *',
     'form.titlePlaceholder': 'Zone name',
     'form.description': 'Description',
     'form.descriptionPlaceholder': 'Describe the situation in this zone...',
-    'form.severity': 'Severity',
     'form.terrain': '🏔️ Terrain Type',
+    'form.severity': 'Severity',
     'form.status': 'Status',
-    'form.active': '✅ Active / Open',
-    'form.inactive': '❌ Inactive / Closed',
-    'form.coords': '📍 Coordinates',
-    'form.save': '💾 Save Changes',
-    'form.create': '➕ Create Zone',
+    'form.sevLow': '🟢 Low',
+    'form.sevMed': '🟡 Medium',
+    'form.sevHigh': '🟠 High',
+    'form.sevCritical': '🔴 Critical',
+    'form.statusActive': '✅ Active / Open',
+    'form.statusInactive': '❌ Inactive / Closed',
+    'form.coordinates': '📍 Coordinates',
+    'form.saveChanges': '💾 Save Changes',
+    'form.createZone': '➕ Create Zone',
+    'form.helpGroups': '👥 Help Groups',
+    'form.addGroup': '➕ Add group',
+    'form.supplies': '📦 Supplies',
+    'form.addSupply': '➕ Add supply',
+    'form.groupName': 'Group name',
+    'form.groupContact': 'Contact (phone)',
+    'form.supplyName': 'Supply name',
+    'form.quantity': 'Quantity',
+    'form.unit': 'Unit',
     'form.cancel': 'Cancel',
-    'login.title': '🔐 Login',
-    'login.subtitle': 'Access to edit zones and manage data',
+    'login.title': 'Administration Access',
+    'login.subtitle': 'Sign in to edit the earthquake map',
     'login.username': 'Username',
     'login.password': 'Password',
-    'login.error': 'Invalid credentials',
-    'terrain.urban': '🏙️ Urban',
-    'terrain.mountain': '🏔️ Mountainous',
-    'terrain.coastal': '🏖️ Coastal',
-    'terrain.rural': '🌾 Rural',
-    'terrain.industrial': '🏭 Industrial',
-    'terrain.mixed': '🔀 Mixed',
+    'login.usernamePlaceholder': 'Your username',
+    'login.passwordPlaceholder': 'Your password',
+    'login.submitting': '⏳ Signing in...',
+    'login.submit': '🚪 Sign In',
+    'notif.title': 'Notifications',
+    'notif.markAllRead': '✅ Mark all as read',
+    'notif.empty': 'No notifications',
+    'notif.now': 'Now',
+    'notif.minutesAgo': 'Xm ago',
+    'notif.hoursAgo': 'Xh ago',
+    'notif.daysAgo': 'Xd ago',
+    'notif.delete': 'Delete',
+    'notif.emergencyTitle': 'Emergency notifications',
+    'rescue.mode': '🆘 RESCUE MODE',
+    'rescue.tabVolunteers': 'Volunteers',
+    'rescue.tabServices': 'Services',
+    'rescue.tabTools': 'Tools',
+    'rescue.tabChat': 'Chat',
+    'rescue.tabBitchat': 'Bitchat',
+    'rescued.title': '🏥 Rescued Persons',
+    'rescued.verifyTitle': 'Missing Persons Verification',
+    'rescued.verifyDesc': 'You can verify people\'s status at',
+    'rescued.searchPlaceholder': 'Search by name, zone or rescuer...',
+    'rescued.resultsFor': 'result(s) for',
+    'rescued.noResults': 'No persons found with that term',
+    'rescued.total': 'Total',
+    'rescued.goodCondition': 'Good Condition',
+    'rescued.injured': 'Injured',
+    'rescued.critical': 'Critical',
+    'rescued.registerPerson': '➕ Register Rescued Person',
+    'rescued.exportJson': '📥 Export JSON',
+    'rescued.exportCsv': '📊 Export CSV',
+    'rescued.formName': 'Name *',
+    'rescued.formAge': 'Age',
+    'rescued.formGender': 'Gender',
+    'rescued.formCondition': 'Condition',
+    'rescued.formZone': 'Rescue Zone *',
+    'rescued.formTerrain': 'Terrain',
+    'rescued.formRescuedBy': 'Rescued by',
+    'rescued.formNotes': 'Notes',
+    'rescued.formLat': 'Latitude',
+    'rescued.formLng': 'Longitude',
+    'rescued.formMale': '👨 Male',
+    'rescued.formFemale': '👩 Female',
+    'rescued.formOther': '🧑 Other',
+    'rescued.formGood': '✅ Good',
+    'rescued.formInjured': '⚠️ Injured',
+    'rescued.formCritical': '🔴 Critical',
+    'rescued.formSubmit': '✅ Register Person',
+    'rescued.yearsOld': 'years old',
+    'rescued.noRecord': 'No record',
+    'rescued.viewOnMap': 'View on map',
+    'rescued.verifyOnSite': 'Verify on missing persons site',
   },
   zh: {
-    'app.title': '🏠 地震地图 - 委内瑞拉',
-    'app.subtitle': '已注册区域',
-    'btn.data': '📥 数据',
-    'btn.exportJson': '📄 导出 JSON',
+    'app.title': '委内瑞拉地震交互地图',
+    'app.subtitle': '紧急区域',
+    'btn.data': '数据',
+    'btn.exportJson': '📥 导出 JSON',
     'btn.exportCsv': '📊 导出 CSV',
     'btn.importJson': '📥 导入 JSON',
     'btn.rescuedPersons': '🏥 被救人员',
-    'btn.rescueMode': '🆘 救援模式',
-    'btn.readOnly': '👁️ 只读',
-    'btn.editMode': '✏️ 编辑模式',
-    'btn.login': '🔐 登录',
-    'btn.logout': '🚪 退出',
-    'filter.label': '筛选',
+    'btn.rescueMode': '救援模式',
+    'btn.logout': '退出',
+    'btn.login': '登录',
+    'btn.edit': '编辑',
+    'btn.addView': '添加',
+    'btn.readOnly': '只读',
+    'btn.admin': '管理',
+    'import.title': '📥 导入数据',
+    'import.desc': '选择从此应用程序导出的 JSON 文件以导入数据。',
+    'import.desc2': '现有标记将保留，并将添加新的标记。',
+    'import.dropzone': '📁 点击此处选择 JSON 文件',
+    'import.cancel': '取消',
+    'import.error': '导入错误',
+    'map.clickToPlace': '📍 点击地图放置新区域',
+    'map.cancel': '取消',
+    'filter.label': '🔍 筛选:',
     'filter.clear': '✕ 清除',
     'sidebar.search': '搜索区域...',
-    'sidebar.addZone': '➕ 添加区域',
-    'sidebar.zones': '区域',
-    'detail.helpGroups': '👥 援助小组',
-    'detail.supplies': '📦 物资',
-    'detail.coords': '📍 坐标',
-    'detail.noGroups': '该区域未分配小组',
-    'detail.noSupplies': '暂无物资登记',
-    'rescue.badge': '🆘 救援模式',
-    'rescue.volunteers': '志愿者',
-    'rescue.services': '服务',
-    'rescue.tools': '工具',
-    'rescue.chat': '聊天',
-    'rescue.bitchat': 'Bitchat',
-    'rescued.title': '🏥 被救人员',
-    'rescued.search': '按姓名、区域或救援者搜索...',
-    'rescued.noResults': '未找到匹配的人员',
-    'rescued.total': '总计',
-    'rescued.good': '状况良好',
-    'rescued.injured': '受伤',
-    'rescued.critical': '危急',
-    'rescued.addPerson': '➕ 登记被救人员',
-    'rescued.verifyNotice': '您可以在以下网站验证人员状态',
-    'rescued.exportJson': '📥 导出 JSON',
-    'rescued.exportCsv': '📊 导出 CSV',
-    'rescued.name': '姓名 *',
-    'rescued.age': '年龄',
-    'rescued.gender': '性别',
-    'rescued.male': '👨 男',
-    'rescued.female': '👩 女',
-    'rescued.other': '🧑 其他',
-    'rescued.condition': '状况',
-    'rescued.goodCondition': '✅ 良好',
-    'rescued.injuredCondition': '⚠️ 受伤',
-    'rescued.criticalCondition': '🔴 危急',
-    'rescued.zone': '救援区域 *',
-    'rescued.terrain': '地形',
-    'rescued.rescuedBy': '救援者',
-    'rescued.notes': '备注',
-    'rescued.lat': '纬度',
-    'rescued.lng': '经度',
-    'rescued.register': '✅ 登记人员',
-    'map.layerToggle': '被救人员',
-    'map.placeMarker': '📍 点击地图放置新区域',
-    'map.cancel': '取消',
-    'map.apiRequired': '需要 Google Maps API 密钥',
-    'notif.markAllRead': '全部标为已读',
-    'notif.empty': '暂无通知',
-    'marker.earthquake': '地震',
-    'marker.buildingCollapsed': '建筑倒塌',
-    'marker.riskZone': '危险区域',
-    'marker.supplyCenter': '物资中心',
-    'marker.blockedRoad': '道路堵塞',
-    'marker.trappedPeople': '被困人员',
-    'marker.shelter': '避难所',
-    'marker.supermarket': '超市',
-    'marker.foodStore': '食品店',
-    'marker.pharmacy': '药店',
+    'sidebar.noResults': '未找到结果',
+    'sidebar.noZones': '暂无注册区域',
+    'sidebar.showing': '显示',
+    'sidebar.of': '/',
+    'sidebar.zones': '个区域',
+    'sidebar.addNew': '➕ 添加新区域',
+    'popup.severity': '严重程度:',
+    'popup.helpGroups': '👥 援助小组',
+    'popup.noGroups': '该区域没有分配的小组',
+    'popup.members': '名成员',
+    'popup.supplies': '📦 物资',
+    'popup.noSupplies': '暂无登记物资',
+    'popup.needed': '⚠️ 需要',
+    'popup.available': '✅ 可用',
+    'popup.delivered': '🚚 已送达',
+    'popup.coords': '📍 坐标:',
+    'popup.created': '创建:',
+    'popup.updated': '更新:',
+    'form.newZone': '➕ 新区域',
+    'form.editZone': '✏️ 编辑区域',
     'form.zoneType': '区域类型',
     'form.title': '标题 *',
     'form.titlePlaceholder': '区域名称',
     'form.description': '描述',
     'form.descriptionPlaceholder': '描述该区域的情况...',
-    'form.severity': '严重程度',
     'form.terrain': '🏔️ 地形类型',
+    'form.severity': '严重程度',
     'form.status': '状态',
-    'form.active': '✅ 活跃 / 开放',
-    'form.inactive': '❌ 停用 / 关闭',
-    'form.coords': '📍 坐标',
-    'form.save': '💾 保存更改',
-    'form.create': '➕ 创建区域',
+    'form.sevLow': '🟢 低',
+    'form.sevMed': '🟡 中',
+    'form.sevHigh': '🟠 高',
+    'form.sevCritical': '🔴 危急',
+    'form.statusActive': '✅ 活跃 / 开放',
+    'form.statusInactive': '❌ 不活跃 / 关闭',
+    'form.coordinates': '📍 坐标',
+    'form.saveChanges': '💾 保存更改',
+    'form.createZone': '➕ 创建区域',
+    'form.helpGroups': '👥 援助小组',
+    'form.addGroup': '➕ 添加小组',
+    'form.supplies': '📦 物资',
+    'form.addSupply': '➕ 添加物资',
+    'form.groupName': '小组名称',
+    'form.groupContact': '联系方式（电话）',
+    'form.supplyName': '物资名称',
+    'form.quantity': '数量',
+    'form.unit': '单位',
     'form.cancel': '取消',
-    'login.title': '🔐 登录',
-    'login.subtitle': '登录以编辑区域和管理数据',
+    'login.title': '管理员登录',
+    'login.subtitle': '登录以编辑地震地图',
     'login.username': '用户名',
     'login.password': '密码',
-    'login.error': '凭证无效',
-    'terrain.urban': '🏙️ 城市',
-    'terrain.mountain': '🏔️ 山区',
-    'terrain.coastal': '🏖️ 沿海',
-    'terrain.rural': '🌾 农村',
-    'terrain.industrial': '🏭 工业区',
-    'terrain.mixed': '🔀 混合',
+    'login.usernamePlaceholder': '请输入用户名',
+    'login.passwordPlaceholder': '请输入密码',
+    'login.submitting': '⏳ 登录中...',
+    'login.submit': '🚪 登录',
+    'notif.title': '通知',
+    'notif.markAllRead': '✅ 全部标为已读',
+    'notif.empty': '暂无通知',
+    'notif.now': '刚刚',
+    'notif.minutesAgo': 'X分钟前',
+    'notif.hoursAgo': 'X小时前',
+    'notif.daysAgo': 'X天前',
+    'notif.delete': '删除',
+    'notif.emergencyTitle': '紧急通知',
+    'rescue.mode': '🆘 救援模式',
+    'rescue.tabVolunteers': '志愿者',
+    'rescue.tabServices': '服务',
+    'rescue.tabTools': '工具',
+    'rescue.tabChat': '聊天',
+    'rescue.tabBitchat': 'Bitchat',
+    'rescued.title': '🏥 被救人员',
+    'rescued.verifyTitle': '失踪人口验证',
+    'rescued.verifyDesc': '您可以在以下网站验证人员状态',
+    'rescued.searchPlaceholder': '按姓名、区域或救援者搜索...',
+    'rescued.resultsFor': '个结果匹配',
+    'rescued.noResults': '未找到匹配的人员',
+    'rescued.total': '总计',
+    'rescued.goodCondition': '状况良好',
+    'rescued.injured': '受伤',
+    'rescued.critical': '危急',
+    'rescued.registerPerson': '➕ 登记被救人员',
+    'rescued.exportJson': '📥 导出 JSON',
+    'rescued.exportCsv': '📊 导出 CSV',
+    'rescued.formName': '姓名 *',
+    'rescued.formAge': '年龄',
+    'rescued.formGender': '性别',
+    'rescued.formCondition': '状况',
+    'rescued.formZone': '救援区域 *',
+    'rescued.formTerrain': '地形',
+    'rescued.formRescuedBy': '救援者',
+    'rescued.formNotes': '备注',
+    'rescued.formLat': '纬度',
+    'rescued.formLng': '经度',
+    'rescued.formMale': '👨 男性',
+    'rescued.formFemale': '👩 女性',
+    'rescued.formOther': '🧑 其他',
+    'rescued.formGood': '✅ 良好',
+    'rescued.formInjured': '⚠️ 受伤',
+    'rescued.formCritical': '🔴 危急',
+    'rescued.formSubmit': '✅ 登记人员',
+    'rescued.yearsOld': '岁',
+    'rescued.noRecord': '无记录',
+    'rescued.viewOnMap': '在地图上查看',
+    'rescued.verifyOnSite': '在失踪人员网站验证',
   },
   ar: {
-    'app.title': '🏠 خريطة زلازل - فنزويلا',
-    'app.subtitle': 'مناطق مسجلة',
-    'btn.data': '📥 البيانات',
-    'btn.exportJson': '📄 تصدير JSON',
+    'app.title': 'خريطة زلزال فنزويلا التفاعلية',
+    'app.subtitle': 'مناطق الطوارئ',
+    'btn.data': 'البيانات',
+    'btn.exportJson': '📥 تصدير JSON',
     'btn.exportCsv': '📊 تصدير CSV',
     'btn.importJson': '📥 استيراد JSON',
     'btn.rescuedPersons': '🏥 الأشخاص المنقذون',
-    'btn.rescueMode': '🆘 وضع الإنقاذ',
-    'btn.readOnly': '👁️ للقراءة فقط',
-    'btn.editMode': '✏️ وضع التحرير',
-    'btn.login': '🔐 تسجيل الدخول',
-    'btn.logout': '🚪 تسجيل الخروج',
-    'filter.label': 'الفلاتر',
-    'filter.clear': '✕ مسح',
-    'sidebar.search': 'بحث عن منطقة...',
-    'sidebar.addZone': '➕ إضافة منطقة',
-    'sidebar.zones': 'مناطق',
-    'detail.helpGroups': '👥 مجموعات المساعدة',
-    'detail.supplies': '📦 الإمدادات',
-    'detail.coords': '📍 الإحداثيات',
-    'detail.noGroups': 'لا توجد مجموعات مخصصة لهذه المنطقة',
-    'detail.noSupplies': 'لا توجد إمدادات مسجلة',
-    'rescue.badge': '🆘 وضع الإنقاذ',
-    'rescue.volunteers': 'المتطوعون',
-    'rescue.services': 'الخدمات',
-    'rescue.tools': 'الأدوات',
-    'rescue.chat': 'المحادثة',
-    'rescue.bitchat': 'Bitchat',
-    'rescued.title': '🏥 الأشخاص المنقذون',
-    'rescued.search': 'بحث بالاسم أو المنطقة أو المنقذ...',
-    'rescued.noResults': 'لم يتم العثور على أشخاص',
-    'rescued.total': 'المجموع',
-    'rescued.good': 'حالة جيدة',
-    'rescued.injured': 'جرحى',
-    'rescued.critical': 'حرج',
-    'rescued.addPerson': '➕ تسجيل شخص منقذ',
-    'rescued.verifyNotice': 'يمكنك التحقق من حالة الأشخاص على',
-    'rescued.exportJson': '📥 تصدير JSON',
-    'rescued.exportCsv': '📊 تصدير CSV',
-    'rescued.name': 'الاسم *',
-    'rescued.age': 'العمر',
-    'rescued.gender': 'الجنس',
-    'rescued.male': '👨 ذكر',
-    'rescued.female': '👩 أنثى',
-    'rescued.other': '🧑 آخر',
-    'rescued.condition': 'الحالة',
-    'rescued.goodCondition': '✅ جيدة',
-    'rescued.injuredCondition': '⚠️ جريح',
-    'rescued.criticalCondition': '🔴 حرج',
-    'rescued.zone': 'منطقة الإنقاذ *',
-    'rescued.terrain': 'التضاريس',
-    'rescued.rescuedBy': 'المنقذ',
-    'rescued.notes': 'ملاحظات',
-    'rescued.lat': 'خط العرض',
-    'rescued.lng': 'خط الطول',
-    'rescued.register': '✅ تسجيل الشخص',
-    'map.layerToggle': 'المنقذون',
-    'map.placeMarker': '📍 انقر على الخريطة لوضع المنطقة الجديدة',
+    'btn.rescueMode': 'وضع الإنقاذ',
+    'btn.logout': 'خروج',
+    'btn.login': 'دخول',
+    'btn.edit': 'تحرير',
+    'btn.addView': 'إضافة',
+    'btn.readOnly': 'عرض فقط',
+    'btn.admin': 'الإدارة',
+    'import.title': '📥 استيراد البيانات',
+    'import.desc': 'اختر ملف JSON تم تصديره من هذا التطبيق لاستيراد البيانات.',
+    'import.desc2': 'سيتم الاحتفاظ بالعلامات الموجودة وسيتم إضافة علامات جديدة.',
+    'import.dropzone': '📁 انقر هنا لاختيار ملف JSON',
+    'import.cancel': 'إلغاء',
+    'import.error': 'خطأ في الاستيراد',
+    'map.clickToPlace': '📍 انقر على الخريطة لوضع المنطقة الجديدة',
     'map.cancel': 'إلغاء',
-    'map.apiRequired': 'مفتاح Google Maps API مطلوب',
-    'notif.markAllRead': 'تحديد الكل كمقروء',
-    'notif.empty': 'لا توجد إشعارات',
-    'marker.earthquake': 'زلزال',
-    'marker.buildingCollapsed': 'مبنى منهار',
-    'marker.riskZone': 'منطقة خطر',
-    'marker.supplyCenter': 'مركز إمدادات',
-    'marker.blockedRoad': 'طريق مسدود',
-    'marker.trappedPeople': 'أشخاص عالقون',
-    'marker.shelter': 'مأوى',
-    'marker.supermarket': 'سوبر ماركت',
-    'marker.foodStore': 'محل طعام',
-    'marker.pharmacy': 'صيدلية',
+    'filter.label': '🔍 تصفية:',
+    'filter.clear': '✕ مسح',
+    'sidebar.search': 'البحث عن مناطق...',
+    'sidebar.noResults': 'لم يتم العثور على نتائج',
+    'sidebar.noZones': 'لا توجد مناطق مسجلة',
+    'sidebar.showing': 'عرض',
+    'sidebar.of': 'من',
+    'sidebar.zones': 'مناطق',
+    'sidebar.addNew': '➕ إضافة منطقة جديدة',
+    'popup.severity': 'الخطورة:',
+    'popup.helpGroups': '👥 مجموعات المساعدة',
+    'popup.noGroups': 'لا توجد مجموعات مخصصة لهذه المنطقة',
+    'popup.members': 'أعضاء',
+    'popup.supplies': '📦 الإمدادات',
+    'popup.noSupplies': 'لا توجد إمدادات مسجلة',
+    'popup.needed': '⚠️ مطلوب',
+    'popup.available': '✅ متاح',
+    'popup.delivered': '🚚 تم التوصيل',
+    'popup.coords': '📍 الإحداثيات:',
+    'popup.created': 'أنشئ:',
+    'popup.updated': 'حُدث:',
+    'form.newZone': '➕ منطقة جديدة',
+    'form.editZone': '✏️ تحرير المنطقة',
     'form.zoneType': 'نوع المنطقة',
     'form.title': 'العنوان *',
     'form.titlePlaceholder': 'اسم المنطقة',
     'form.description': 'الوصف',
     'form.descriptionPlaceholder': 'صف الوضع في هذه المنطقة...',
-    'form.severity': 'الخطورة',
     'form.terrain': '🏔️ نوع التضاريس',
+    'form.severity': 'الخطورة',
     'form.status': 'الحالة',
-    'form.active': '✅ نشط / مفتوح',
-    'form.inactive': '❌ غير نشط / مغلق',
-    'form.coords': '📍 الإحداثيات',
-    'form.save': '💾 حفظ التغييرات',
-    'form.create': '➕ إنشاء منطقة',
+    'form.sevLow': '🟢 منخفضة',
+    'form.sevMed': '🟡 متوسطة',
+    'form.sevHigh': '🟠 عالية',
+    'form.sevCritical': '🔴 حرجة',
+    'form.statusActive': '✅ نشط / مفتوح',
+    'form.statusInactive': '❌ غير نشط / مغلق',
+    'form.coordinates': '📍 الإحداثيات',
+    'form.saveChanges': '💾 حفظ التغييرات',
+    'form.createZone': '➕ إنشاء المنطقة',
+    'form.helpGroups': '👥 مجموعات المساعدة',
+    'form.addGroup': '➕ إضافة مجموعة',
+    'form.supplies': '📦 الإمدادات',
+    'form.addSupply': '➕ إضافة إمداد',
+    'form.groupName': 'اسم المجموعة',
+    'form.groupContact': 'جهة الاتصال (الهاتف)',
+    'form.supplyName': 'اسم الإمداد',
+    'form.quantity': 'الكمية',
+    'form.unit': 'الوحدة',
     'form.cancel': 'إلغاء',
-    'login.title': '🔐 تسجيل الدخول',
-    'login.subtitle': 'الدخول لتحرير المناطق وإدارة البيانات',
+    'login.title': 'دخول الإدارة',
+    'login.subtitle': 'سجّل الدخول لتحرير خريطة الزلزال',
     'login.username': 'اسم المستخدم',
     'login.password': 'كلمة المرور',
-    'login.error': 'بيانات اعتماد غير صالحة',
-    'terrain.urban': '🏙️ حضري',
-    'terrain.mountain': '🏔️ جبلي',
-    'terrain.coastal': '🏖️ ساحلي',
-    'terrain.rural': '🌾 ريفي',
-    'terrain.industrial': '🏭 صناعي',
-    'terrain.mixed': '🔀 مختلط',
+    'login.usernamePlaceholder': 'اسم المستخدم الخاص بك',
+    'login.passwordPlaceholder': 'كلمة المرور الخاصة بك',
+    'login.submitting': '⏳ جارٍ الدخول...',
+    'login.submit': '🚪 تسجيل الدخول',
+    'notif.title': 'الإشعارات',
+    'notif.markAllRead': '✅ تحديد الكل كمقروء',
+    'notif.empty': 'لا توجد إشعارات',
+    'notif.now': 'الآن',
+    'notif.minutesAgo': 'منذ Xm',
+    'notif.hoursAgo': 'منذ Xh',
+    'notif.daysAgo': 'منذ Xd',
+    'notif.delete': 'حذف',
+    'notif.emergencyTitle': 'إشعارات الطوارئ',
+    'rescue.mode': '🆘 وضع الإنقاذ',
+    'rescue.tabVolunteers': 'المتطوعون',
+    'rescue.tabServices': 'الخدمات',
+    'rescue.tabTools': 'الأدوات',
+    'rescue.tabChat': 'المحادثة',
+    'rescue.tabBitchat': 'Bitchat',
+    'rescued.title': '🏥 الأشخاص المنقذون',
+    'rescued.verifyTitle': 'التحقق من المفقودين',
+    'rescued.verifyDesc': 'يمكنك التحقق من حالة الأشخاص على',
+    'rescued.searchPlaceholder': 'البحث بالاسم أو المنطقة أو المنقذ...',
+    'rescued.resultsFor': 'نتيجة(نتائج) لـ',
+    'rescued.noResults': 'لم يتم العثور على أشخاص بهذا المصطلح',
+    'rescued.total': 'الإجمالي',
+    'rescued.goodCondition': 'حالة جيدة',
+    'rescued.injured': 'جرحى',
+    'rescued.critical': 'حرج',
+    'rescued.registerPerson': '➕ تسجيل شخص منقذ',
+    'rescued.exportJson': '📥 تصدير JSON',
+    'rescued.exportCsv': '📊 تصدير CSV',
+    'rescued.formName': 'الاسم *',
+    'rescued.formAge': 'العمر',
+    'rescued.formGender': 'الجنس',
+    'rescued.formCondition': 'الحالة',
+    'rescued.formZone': 'منطقة الإنقاذ *',
+    'rescued.formTerrain': 'التضاريس',
+    'rescued.formRescuedBy': 'نقذه',
+    'rescued.formNotes': 'ملاحظات',
+    'rescued.formLat': 'خط العرض',
+    'rescued.formLng': 'خط الطول',
+    'rescued.formMale': '👨 ذكر',
+    'rescued.formFemale': '👩 أنثى',
+    'rescued.formOther': '🧑 آخر',
+    'rescued.formGood': '✅ جيد',
+    'rescued.formInjured': '⚠️ مصاب',
+    'rescued.formCritical': '🔴 حرج',
+    'rescued.formSubmit': '✅ تسجيل الشخص',
+    'rescued.yearsOld': 'سنوات',
+    'rescued.noRecord': 'بدون سجل',
+    'rescued.viewOnMap': 'عرض على الخريطة',
+    'rescued.verifyOnSite': 'التحقق على موقع المفقودين',
   },
   pt: {
-    'app.title': '🏠 Mapa de Terremoto - Venezuela',
-    'app.subtitle': 'zonas registradas',
-    'btn.data': '📥 Dados',
-    'btn.exportJson': '📄 Exportar JSON',
+    'app.title': 'Mapa Interativo do Terremoto da Venezuela',
+    'app.subtitle': 'zonas de emergência',
+    'btn.data': 'Dados',
+    'btn.exportJson': '📥 Exportar JSON',
     'btn.exportCsv': '📊 Exportar CSV',
     'btn.importJson': '📥 Importar JSON',
     'btn.rescuedPersons': '🏥 Pessoas Resgatadas',
-    'btn.rescueMode': '🆘 Modo Resgate',
-    'btn.readOnly': '👁️ Somente Leitura',
-    'btn.editMode': '✏️ Modo Edição',
-    'btn.login': '🔐 Entrar',
-    'btn.logout': '🚪 Sair',
-    'filter.label': 'Filtros',
-    'filter.clear': '✕ Limpar',
-    'sidebar.search': 'Pesquisar zona...',
-    'sidebar.addZone': '➕ Adicionar Zona',
-    'sidebar.zones': 'zonas',
-    'detail.helpGroups': '👥 Grupos de Ajuda',
-    'detail.supplies': '📦 Suprimentos',
-    'detail.coords': '📍 Coordenadas',
-    'detail.noGroups': 'Nenhum grupo atribuído a esta zona',
-    'detail.noSupplies': 'Nenhum suprimento registrado',
-    'rescue.badge': '🆘 MODO RESGATE',
-    'rescue.volunteers': 'Voluntários',
-    'rescue.services': 'Serviços',
-    'rescue.tools': 'Ferramentas',
-    'rescue.chat': 'Chat',
-    'rescue.bitchat': 'Bitchat',
-    'rescued.title': '🏥 Pessoas Resgatadas',
-    'rescued.search': 'Pesquisar por nome, zona ou resgatador...',
-    'rescued.noResults': 'Nenhuma pessoa encontrada',
-    'rescued.total': 'Total',
-    'rescued.good': 'Bom Estado',
-    'rescued.injured': 'Feridos',
-    'rescued.critical': 'Crítico',
-    'rescued.addPerson': '➕ Registrar Pessoa Resgatada',
-    'rescued.verifyNotice': 'Você pode verificar o status das pessoas em',
-    'rescued.exportJson': '📥 Exportar JSON',
-    'rescued.exportCsv': '📊 Exportar CSV',
-    'rescued.name': 'Nome *',
-    'rescued.age': 'Idade',
-    'rescued.gender': 'Sexo',
-    'rescued.male': '👨 Masculino',
-    'rescued.female': '👩 Feminino',
-    'rescued.other': '🧑 Outro',
-    'rescued.condition': 'Condição',
-    'rescued.goodCondition': '✅ Bom',
-    'rescued.injuredCondition': '⚠️ Ferido',
-    'rescued.criticalCondition': '🔴 Crítico',
-    'rescued.zone': 'Zona de Resgate *',
-    'rescued.terrain': 'Terreno',
-    'rescued.rescuedBy': 'Resgatado por',
-    'rescued.notes': 'Notas',
-    'rescued.lat': 'Latitude',
-    'rescued.lng': 'Longitude',
-    'rescued.register': '✅ Registrar Pessoa',
-    'map.layerToggle': 'Resgatados',
-    'map.placeMarker': '📍 Clique no mapa para colocar a nova zona',
+    'btn.rescueMode': 'Modo de Resgate',
+    'btn.logout': 'Sair',
+    'btn.login': 'Entrar',
+    'btn.edit': 'Edição',
+    'btn.addView': 'Adicionar',
+    'btn.readOnly': 'Somente visualização',
+    'btn.admin': 'Admin',
+    'import.title': '📥 Importar Dados',
+    'import.desc': 'Selecione um arquivo JSON exportado desta aplicação para importar os dados.',
+    'import.desc2': 'Os marcadores existentes serão mantidos e novos serão adicionados.',
+    'import.dropzone': '📁 Clique aqui para selecionar um arquivo JSON',
+    'import.cancel': 'Cancelar',
+    'import.error': 'Erro ao importar',
+    'map.clickToPlace': '📍 Clique no mapa para colocar a nova zona',
     'map.cancel': 'Cancelar',
-    'map.apiRequired': 'Chave da API do Google Maps Necessária',
-    'notif.markAllRead': 'Marcar tudo como lido',
-    'notif.empty': 'Sem notificações',
-    'marker.earthquake': 'Terremoto',
-    'marker.buildingCollapsed': 'Prédio Desabado',
-    'marker.riskZone': 'Zona de Risco',
-    'marker.supplyCenter': 'Centro de Suprimentos',
-    'marker.blockedRoad': 'Estrada Bloqueada',
-    'marker.trappedPeople': 'Pessoas Presas',
-    'marker.shelter': 'Abrigo',
-    'marker.supermarket': 'Supermercado',
-    'marker.foodStore': 'Loja de Comida',
-    'marker.pharmacy': 'Farmácia',
+    'filter.label': '🔍 Filtrar:',
+    'filter.clear': '✕ Limpar',
+    'sidebar.search': 'Buscar zonas...',
+    'sidebar.noResults': 'Nenhum resultado encontrado',
+    'sidebar.noZones': 'Nenhuma zona registrada',
+    'sidebar.showing': 'Mostrando',
+    'sidebar.of': 'de',
+    'sidebar.zones': 'zonas',
+    'sidebar.addNew': '➕ Adicionar nova zona',
+    'popup.severity': 'Severidade:',
+    'popup.helpGroups': '👥 Grupos de Ajuda',
+    'popup.noGroups': 'Nenhum grupo atribuído a esta zona',
+    'popup.members': 'membros',
+    'popup.supplies': '📦 Suprimentos',
+    'popup.noSupplies': 'Nenhum suprimento registrado',
+    'popup.needed': '⚠️ Necessário',
+    'popup.available': '✅ Disponível',
+    'popup.delivered': '🚚 Entregue',
+    'popup.coords': '📍 Coordenadas:',
+    'popup.created': 'Criado:',
+    'popup.updated': 'Atualizado:',
+    'form.newZone': '➕ Nova Zona',
+    'form.editZone': '✏️ Editar Zona',
     'form.zoneType': 'Tipo de Zona',
     'form.title': 'Título *',
     'form.titlePlaceholder': 'Nome da zona',
     'form.description': 'Descrição',
     'form.descriptionPlaceholder': 'Descreva a situação nesta zona...',
-    'form.severity': 'Severidade',
     'form.terrain': '🏔️ Tipo de Terreno',
+    'form.severity': 'Severidade',
     'form.status': 'Estado',
-    'form.active': '✅ Ativo / Aberto',
-    'form.inactive': '❌ Inativo / Fechado',
-    'form.coords': '📍 Coordenadas',
-    'form.save': '💾 Salvar Alterações',
-    'form.create': '➕ Criar Zona',
+    'form.sevLow': '🟢 Baixa',
+    'form.sevMed': '🟡 Média',
+    'form.sevHigh': '🟠 Alta',
+    'form.sevCritical': '🔴 Crítica',
+    'form.statusActive': '✅ Ativo / Aberto',
+    'form.statusInactive': '❌ Inativo / Fechado',
+    'form.coordinates': '📍 Coordenadas',
+    'form.saveChanges': '💾 Salvar Alterações',
+    'form.createZone': '➕ Criar Zona',
+    'form.helpGroups': '👥 Grupos de Ajuda',
+    'form.addGroup': '➕ Adicionar grupo',
+    'form.supplies': '📦 Suprimentos',
+    'form.addSupply': '➕ Adicionar suprimento',
+    'form.groupName': 'Nome do grupo',
+    'form.groupContact': 'Contato (telefone)',
+    'form.supplyName': 'Nome do suprimento',
+    'form.quantity': 'Quantidade',
+    'form.unit': 'Unidade',
     'form.cancel': 'Cancelar',
-    'login.title': '🔐 Entrar',
-    'login.subtitle': 'Acesse para editar zonas e gerenciar dados',
+    'login.title': 'Acesso Administrativo',
+    'login.subtitle': 'Faça login para editar o mapa do terremoto',
     'login.username': 'Usuário',
     'login.password': 'Senha',
-    'login.error': 'Credenciais inválidas',
-    'terrain.urban': '🏙️ Urbano',
-    'terrain.mountain': '🏔️ Montanhoso',
-    'terrain.coastal': '🏖️ Costeiro',
-    'terrain.rural': '🌾 Rural',
-    'terrain.industrial': '🏭 Industrial',
-    'terrain.mixed': '🔀 Misto',
+    'login.usernamePlaceholder': 'Seu usuário',
+    'login.passwordPlaceholder': 'Sua senha',
+    'login.submitting': '⏳ Entrando...',
+    'login.submit': '🚪 Entrar',
+    'notif.title': 'Notificações',
+    'notif.markAllRead': '✅ Marcar tudo como lido',
+    'notif.empty': 'Nenhuma notificação',
+    'notif.now': 'Agora',
+    'notif.minutesAgo': 'Há Xm',
+    'notif.hoursAgo': 'Há Xh',
+    'notif.daysAgo': 'Há Xd',
+    'notif.delete': 'Excluir',
+    'notif.emergencyTitle': 'Notificações de emergência',
+    'rescue.mode': '🆘 MODO DE RESGATE',
+    'rescue.tabVolunteers': 'Voluntários',
+    'rescue.tabServices': 'Serviços',
+    'rescue.tabTools': 'Ferramentas',
+    'rescue.tabChat': 'Chat',
+    'rescue.tabBitchat': 'Bitchat',
+    'rescued.title': '🏥 Pessoas Resgatadas',
+    'rescued.verifyTitle': 'Verificação de Desaparecidos',
+    'rescued.verifyDesc': 'Você pode verificar o status das pessoas em',
+    'rescued.searchPlaceholder': 'Buscar por nome, zona ou resgatador...',
+    'rescued.resultsFor': 'resultado(s) para',
+    'rescued.noResults': 'Nenhuma pessoa encontrada com esse termo',
+    'rescued.total': 'Total',
+    'rescued.goodCondition': 'Bom Estado',
+    'rescued.injured': 'Feridos',
+    'rescued.critical': 'Crítico',
+    'rescued.registerPerson': '➕ Registrar Pessoa Resgatada',
+    'rescued.exportJson': '📥 Exportar JSON',
+    'rescued.exportCsv': '📊 Exportar CSV',
+    'rescued.formName': 'Nome *',
+    'rescued.formAge': 'Idade',
+    'rescued.formGender': 'Sexo',
+    'rescued.formCondition': 'Condição',
+    'rescued.formZone': 'Zona de Resgate *',
+    'rescued.formTerrain': 'Terreno',
+    'rescued.formRescuedBy': 'Resgatado por',
+    'rescued.formNotes': 'Notas',
+    'rescued.formLat': 'Latitude',
+    'rescued.formLng': 'Longitude',
+    'rescued.formMale': '👨 Masculino',
+    'rescued.formFemale': '👩 Feminino',
+    'rescued.formOther': '🧑 Outro',
+    'rescued.formGood': '✅ Bom',
+    'rescued.formInjured': '⚠️ Ferido',
+    'rescued.formCritical': '🔴 Crítico',
+    'rescued.formSubmit': '✅ Registrar Pessoa',
+    'rescued.yearsOld': 'anos',
+    'rescued.noRecord': 'Sem registro',
+    'rescued.viewOnMap': 'Ver no mapa',
+    'rescued.verifyOnSite': 'Verificar no site de desaparecidos',
   },
 };
 
-// ===== CONTEXT =====
+// ===== Context =====
 interface I18nContextValue {
   lang: Language;
   setLang: (lang: Language) => void;
@@ -629,29 +823,38 @@ interface I18nContextValue {
   dir: 'ltr' | 'rtl';
 }
 
-const I18nContext = createContext<I18nContextValue>({
-  lang: 'es',
-  setLang: () => {},
-  t: (key) => key,
-  dir: 'ltr',
-});
+const I18nContext = createContext<I18nContextValue | null>(null);
 
-export function I18nProvider({ children }: { children: ReactNode }) {
-  const [lang, setLangState] = useState<Language>(() => {
-    try {
-      return (localStorage.getItem('app_lang') as Language) || 'es';
-    } catch { return 'es'; }
-  });
+// ===== Provider =====
+const STORAGE_KEY = 'app_language';
+
+function getInitialLanguage(): Language {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved && saved in translations) return saved as Language;
+  } catch { /* ignore */ }
+  return 'es';
+}
+
+export const I18nProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+  const [lang, setLangState] = useState<Language>(getInitialLanguage);
 
   const setLang = useCallback((newLang: Language) => {
     setLangState(newLang);
-    localStorage.setItem('app_lang', newLang);
+    try { localStorage.setItem(STORAGE_KEY, newLang); } catch { /* ignore */ }
+    // Set document direction for RTL
     document.documentElement.dir = LANGUAGES[newLang].dir;
     document.documentElement.lang = newLang;
   }, []);
 
+  // Set initial direction on mount and language change
+  useEffect(() => {
+    document.documentElement.dir = LANGUAGES[lang].dir;
+    document.documentElement.lang = lang;
+  }, [lang]);
+
   const t = useCallback((key: keyof TranslationKeys): string => {
-    return translations[lang][key] || translations['es'][key] || key;
+    return translations[lang]?.[key] || translations['es']?.[key] || key;
   }, [lang]);
 
   const dir = LANGUAGES[lang].dir;
@@ -661,8 +864,11 @@ export function I18nProvider({ children }: { children: ReactNode }) {
       {children}
     </I18nContext.Provider>
   );
-}
+};
 
-export function useI18n() {
-  return useContext(I18nContext);
+// ===== Hook =====
+export function useI18n(): I18nContextValue {
+  const ctx = useContext(I18nContext);
+  if (!ctx) throw new Error('useI18n must be used within I18nProvider');
+  return ctx;
 }

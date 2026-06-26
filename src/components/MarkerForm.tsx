@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { CATEGORIES } from '../utils/categories';
 import type { MapMarker, MarkerType, HelpGroup, Supply, TerrainType } from '../types';
 import { TERRAIN_LABELS } from '../types';
+import { useI18n } from '../utils/i18n';
 
 interface MarkerFormProps {
   marker?: MapMarker | null;
@@ -19,6 +20,7 @@ const MarkerForm: React.FC<MarkerFormProps> = ({
   onClose,
 }) => {
   const isEditing = !!marker;
+  const { t } = useI18n();
 
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -120,7 +122,7 @@ const MarkerForm: React.FC<MarkerFormProps> = ({
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
-          <h2>{isEditing ? '✏️ Editar Zona' : '➕ Nueva Zona'}</h2>
+          <h2>{isEditing ? t('form.editZone') : t('form.newZone')}</h2>
           <button className="modal-close" onClick={onClose}>✕</button>
         </div>
 
@@ -128,7 +130,7 @@ const MarkerForm: React.FC<MarkerFormProps> = ({
           <div className="modal-body">
             {/* Tipo de zona */}
             <div className="form-group">
-              <label className="form-label">Tipo de Zona</label>
+              <label className="form-label">{t('form.zoneType')}</label>
               <select
                 className="form-select"
                 value={type}
@@ -144,11 +146,11 @@ const MarkerForm: React.FC<MarkerFormProps> = ({
 
             {/* Título */}
             <div className="form-group">
-              <label className="form-label">Título *</label>
+              <label className="form-label">{t('form.title')}</label>
               <input
                 className="form-input"
                 type="text"
-                placeholder="Nombre de la zona"
+                placeholder={t('form.titlePlaceholder')}
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 required
@@ -157,10 +159,10 @@ const MarkerForm: React.FC<MarkerFormProps> = ({
 
             {/* Descripción */}
             <div className="form-group">
-              <label className="form-label">Descripción</label>
+              <label className="form-label">{t('form.description')}</label>
               <textarea
                 className="form-textarea"
-                placeholder="Describe la situación en esta zona..."
+                placeholder={t('form.descriptionPlaceholder')}
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 rows={3}
@@ -169,7 +171,7 @@ const MarkerForm: React.FC<MarkerFormProps> = ({
 
             {/* Terreno */}
             <div className="form-group">
-              <label className="form-label">🏔️ Tipo de Terreno</label>
+              <label className="form-label">{t('form.terrain')}</label>
               <select
                 className="form-select"
                 value={terrain}
@@ -186,34 +188,34 @@ const MarkerForm: React.FC<MarkerFormProps> = ({
             {/* Severidad y estado */}
             <div className="form-row">
               <div className="form-group">
-                <label className="form-label">Severidad</label>
+                <label className="form-label">{t('form.severity')}</label>
                 <select
                   className="form-select"
                   value={severity}
                   onChange={(e) => setSeverity(e.target.value as typeof severity)}
                 >
-                  <option value="baja">🟢 Baja</option>
-                  <option value="media">🟡 Media</option>
-                  <option value="alta">🟠 Alta</option>
-                  <option value="critica">🔴 Crítica</option>
+                  <option value="baja">{t('form.sevLow')}</option>
+                  <option value="media">{t('form.sevMed')}</option>
+                  <option value="alta">{t('form.sevHigh')}</option>
+                  <option value="critica">{t('form.sevCritical')}</option>
                 </select>
               </div>
               <div className="form-group">
-                <label className="form-label">Estado</label>
+                <label className="form-label">{t('form.status')}</label>
                 <select
                   className="form-select"
                   value={isActive ? 'true' : 'false'}
                   onChange={(e) => setIsActive(e.target.value === 'true')}
                 >
-                  <option value="true">✅ Activo / Abierto</option>
-                  <option value="false">❌ Inactivo / Cerrado</option>
+                  <option value="true">{t('form.statusActive')}</option>
+                  <option value="false">{t('form.statusInactive')}</option>
                 </select>
               </div>
             </div>
 
             {/* Coordenadas */}
             <div className="form-group">
-              <label className="form-label">📍 Coordenadas</label>
+              <label className="form-label">{t('form.coordinates')}</label>
               <div className="form-row">
                 <div>
                   <input
@@ -242,19 +244,19 @@ const MarkerForm: React.FC<MarkerFormProps> = ({
 
             {/* Grupos de ayuda */}
             <div className="form-group">
-              <div className="form-section-title">👥 Grupos de Ayuda</div>
+              <div className="form-section-title">{t('form.helpGroups')}</div>
               {groups.map((group, i) => (
                 <div key={group.id} className="form-group" style={{ marginBottom: 12 }}>
                   <div className="form-row">
                     <input
                       className="form-input"
-                      placeholder="Nombre del grupo"
+                      placeholder={t('form.groupName')}
                       value={group.name}
                       onChange={(e) => updateGroup(i, 'name', e.target.value)}
                     />
                     <input
                       className="form-input"
-                      placeholder="Contacto (teléfono)"
+                      placeholder={t('form.groupContact')}
                       value={group.contact}
                       onChange={(e) => updateGroup(i, 'contact', e.target.value)}
                     />
@@ -279,32 +281,32 @@ const MarkerForm: React.FC<MarkerFormProps> = ({
                 </div>
               ))}
               <button type="button" className="form-add-btn" onClick={addGroup}>
-                ➕ Agregar grupo
+                {t('form.addGroup')}
               </button>
             </div>
 
             {/* Insumos */}
             <div className="form-group">
-              <div className="form-section-title">📦 Insumos</div>
+              <div className="form-section-title">{t('form.supplies')}</div>
               {supplies.map((supply, i) => (
                 <div key={supply.id} className="form-group" style={{ marginBottom: 12 }}>
                   <div className="form-row-3">
                     <input
                       className="form-input"
-                      placeholder="Nombre del insumo"
+                      placeholder={t('form.supplyName')}
                       value={supply.name}
                       onChange={(e) => updateSupply(i, 'name', e.target.value)}
                     />
                     <input
                       className="form-input"
                       type="number"
-                      placeholder="Cantidad"
+                      placeholder={t('form.quantity')}
                       value={supply.quantity}
                       onChange={(e) => updateSupply(i, 'quantity', parseInt(e.target.value) || 0)}
                     />
                     <input
                       className="form-input"
-                      placeholder="Unidad"
+                      placeholder={t('form.unit')}
                       value={supply.unit}
                       onChange={(e) => updateSupply(i, 'unit', e.target.value)}
                     />
@@ -330,17 +332,17 @@ const MarkerForm: React.FC<MarkerFormProps> = ({
                 </div>
               ))}
               <button type="button" className="form-add-btn" onClick={addSupply}>
-                ➕ Agregar insumo
+                {t('form.addSupply')}
               </button>
             </div>
           </div>
 
           <div className="modal-footer">
             <button type="button" className="btn btn-secondary" onClick={onClose}>
-              Cancelar
+              {t('form.cancel')}
             </button>
             <button type="submit" className="btn btn-primary">
-              {isEditing ? '💾 Guardar Cambios' : '➕ Crear Zona'}
+              {isEditing ? t('form.saveChanges') : t('form.createZone')}
             </button>
           </div>
         </form>

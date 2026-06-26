@@ -4,6 +4,7 @@ import { SEVERITY_COLORS } from '../utils/categories';
 import type { MapMarker } from '../types';
 import { TERRAIN_LABELS } from '../types';
 import SiteStatusDashboard from './SiteStatusDashboard';
+import { useI18n } from '../utils/i18n';
 
 interface MarkerPopupProps {
   marker: MapMarker;
@@ -12,6 +13,7 @@ interface MarkerPopupProps {
 
 const MarkerPopup: React.FC<MarkerPopupProps> = ({ marker, onClose }) => {
   const cat = CATEGORIES[marker.type];
+  const { t } = useI18n();
 
   return (
     <div className="detail-panel">
@@ -30,7 +32,7 @@ const MarkerPopup: React.FC<MarkerPopupProps> = ({ marker, onClose }) => {
               <>
                 {' · '}
                 <span style={{ color: SEVERITY_COLORS[marker.severity] }}>
-                  Severidad: {marker.severity.toUpperCase()}
+                  {t('popup.severity')} {marker.severity.toUpperCase()}
                 </span>
               </>
             )}
@@ -56,10 +58,10 @@ const MarkerPopup: React.FC<MarkerPopupProps> = ({ marker, onClose }) => {
         {/* Grupos de ayuda */}
         <div className="detail-section">
           <div className="detail-section-title">
-            👥 Grupos de Ayuda ({marker.groups.length})
+            {t('popup.helpGroups')} ({marker.groups.length})
           </div>
           {marker.groups.length === 0 ? (
-            <p className="detail-no-data">No hay grupos asignados a esta zona</p>
+            <p className="detail-no-data">{t('popup.noGroups')}</p>
           ) : (
             marker.groups.map((group) => (
               <div key={group.id} className="detail-group-item">
@@ -71,7 +73,7 @@ const MarkerPopup: React.FC<MarkerPopupProps> = ({ marker, onClose }) => {
                   <div className="detail-group-contact">📞 {group.contact}</div>
                 </div>
                 <div className="detail-group-members">
-                  {group.memberCount} miembros
+                  {group.memberCount} {t('popup.members')}
                 </div>
               </div>
             ))
@@ -81,10 +83,10 @@ const MarkerPopup: React.FC<MarkerPopupProps> = ({ marker, onClose }) => {
         {/* Insumos necesarios */}
         <div className="detail-section">
           <div className="detail-section-title">
-            📦 Insumos ({marker.supplies.length})
+            {t('popup.supplies')} ({marker.supplies.length})
           </div>
           {marker.supplies.length === 0 ? (
-            <p className="detail-no-data">No hay insumos registrados</p>
+            <p className="detail-no-data">{t('popup.noSupplies')}</p>
           ) : (
             marker.supplies.map((supply) => (
               <div key={supply.id} className="detail-supply-item">
@@ -96,10 +98,10 @@ const MarkerPopup: React.FC<MarkerPopupProps> = ({ marker, onClose }) => {
                 </div>
                 <span className={`supply-status ${supply.status}`}>
                   {supply.status === 'needed'
-                    ? '⚠️ Necesitado'
+                    ? t('popup.needed')
                     : supply.status === 'available'
-                    ? '✅ Disponible'
-                    : '🚚 Entregado'}
+                    ? t('popup.available')
+                    : t('popup.delivered')}
                 </span>
               </div>
             ))
@@ -108,11 +110,11 @@ const MarkerPopup: React.FC<MarkerPopupProps> = ({ marker, onClose }) => {
 
         {/* Coordenadas */}
         <div className="detail-coords">
-          📍 Coordenadas: {marker.lat.toFixed(4)}, {marker.lng.toFixed(4)}
+          {t('popup.coords')} {marker.lat.toFixed(4)}, {marker.lng.toFixed(4)}
           <br />
           <span style={{ fontSize: 10, color: '#475569' }}>
-            Creado: {new Date(marker.createdAt).toLocaleString('es-VE')} ·
-            Actualizado: {new Date(marker.updatedAt).toLocaleString('es-VE')}
+            {t('popup.created')} {new Date(marker.createdAt).toLocaleString('es-VE')} ·
+            {t('popup.updated')} {new Date(marker.updatedAt).toLocaleString('es-VE')}
           </span>
         </div>
       </div>

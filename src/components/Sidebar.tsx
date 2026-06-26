@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { CATEGORIES } from '../utils/categories';
 import type { MapMarker } from '../types';
+import { useI18n } from '../utils/i18n';
 
 interface SidebarProps {
   markers: MapMarker[];
@@ -32,6 +33,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   onAddNew,
 }) => {
   const [search, setSearch] = useState('');
+  const { t } = useI18n();
 
   const filtered = useMemo(() => {
     if (!search.trim()) return markers;
@@ -52,7 +54,7 @@ const Sidebar: React.FC<SidebarProps> = ({
             <span className="search-icon">🔍</span>
             <input
               type="text"
-              placeholder="Buscar zonas..."
+              placeholder={t('sidebar.search')}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
@@ -64,7 +66,7 @@ const Sidebar: React.FC<SidebarProps> = ({
             <div className="sidebar-empty">
               <div className="sidebar-empty-icon">📋</div>
               <div className="sidebar-empty-text">
-                {search ? 'No se encontraron resultados' : 'No hay zonas registradas'}
+                {search ? t('sidebar.noResults') : t('sidebar.noZones')}
               </div>
             </div>
           ) : (
@@ -168,13 +170,13 @@ const Sidebar: React.FC<SidebarProps> = ({
         </div>
 
         <div className="sidebar-count">
-          Mostrando {filtered.length} de {markers.length} zonas
+          {t('sidebar.showing')} {filtered.length} {t('sidebar.of')} {markers.length} {t('sidebar.zones')}
         </div>
 
         {userCanAdd && (
           <div className="sidebar-footer">
             <button className="add-marker-btn" onClick={onAddNew}>
-              ➕ Agregar nueva zona
+              {t('sidebar.addNew')}
             </button>
           </div>
         )}

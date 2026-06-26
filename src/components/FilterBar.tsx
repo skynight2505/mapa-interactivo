@@ -1,6 +1,7 @@
 import React from 'react';
 import { CATEGORIES } from '../utils/categories';
 import type { MarkerType } from '../types';
+import { useI18n } from '../utils/i18n';
 
 interface FilterBarProps {
   activeFilters: MarkerType[];
@@ -13,9 +14,10 @@ const FilterBar: React.FC<FilterBarProps> = ({
   onToggleFilter,
   onClearFilters,
 }) => {
+  const { t } = useI18n();
   return (
     <div className="filter-bar">
-      <span className="filter-label">🔍 Filtrar:</span>
+      <span className="filter-label">{t('filter.label')}</span>
       {Object.values(CATEGORIES).map((cat) => {
         const isActive = activeFilters.includes(cat.type);
         return (
@@ -34,7 +36,7 @@ const FilterBar: React.FC<FilterBarProps> = ({
       })}
       {activeFilters.length > 0 && (
         <button className="filter-clear" onClick={onClearFilters}>
-          ✕ Limpiar
+          {t('filter.clear')}
         </button>
       )}
     </div>

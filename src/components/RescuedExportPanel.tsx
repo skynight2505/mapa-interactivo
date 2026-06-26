@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import type { RescuedPerson, TerrainType } from '../types';
 import { TERRAIN_LABELS } from '../types';
+import { useI18n } from '../utils/i18n';
 
 interface RescuedExportPanelProps {
   onExportJSON: (data: RescuedPerson[]) => void;
@@ -31,6 +32,7 @@ const RescuedExportPanel: React.FC<RescuedExportPanelProps> = ({
   const [rescuedBy, setRescuedBy] = useState('');
   const [condition, setCondition] = useState<'bueno' | 'herido' | 'critico'>('bueno');
   const [notes, setNotes] = useState('');
+  const { t } = useI18n();
 
   const searchResults = useMemo(() => {
     if (!searchQuery.trim()) return [];
@@ -78,7 +80,7 @@ const RescuedExportPanel: React.FC<RescuedExportPanelProps> = ({
     <div className="modal-overlay" onClick={() => setShowForm(false)}>
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
-          <h2>🏥 Personas Rescatadas</h2>
+          <h2>{t('rescued.title')}</h2>
           <button className="modal-close" onClick={() => setShowForm(false)}>✕</button>
         </div>
         <div className="modal-body">
@@ -86,9 +88,9 @@ const RescuedExportPanel: React.FC<RescuedExportPanelProps> = ({
           <div className="rescued-verify-notice">
             <span className="rescued-verify-icon">🔍</span>
             <div>
-              <strong>Verificación de Desaparecidos</strong>
+              <strong>{t('rescued.verifyTitle')}</strong>
               <p style={{ fontSize: 12, color: '#94a3b8', marginTop: 4 }}>
-                Puedes verificar el estado de las personas en{' '}
+                {t('rescued.verifyDesc')}{' '}
                 <a
                   href="http://desaparecidosterremotovenezuela.com"
                   target="_blank"
@@ -107,7 +109,7 @@ const RescuedExportPanel: React.FC<RescuedExportPanelProps> = ({
             <input
               className="rescued-search-input"
               type="text"
-              placeholder="Buscar por nombre, zona o rescatista..."
+              placeholder={t('rescued.searchPlaceholder')}
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
             />
@@ -122,11 +124,11 @@ const RescuedExportPanel: React.FC<RescuedExportPanelProps> = ({
           {searchQuery.trim() && (
             <div className="rescued-search-results">
               <div className="rescued-search-results-header">
-                {searchResults.length} resultado(s) para "{searchQuery}"
+                {searchResults.length} {t('rescued.resultsFor')} "{searchQuery}"
               </div>
               {searchResults.length === 0 ? (
                 <div className="rescued-search-empty">
-                  No se encontraron personas con ese término
+                  {t('rescued.noResults')}
                 </div>
               ) : (
                 searchResults.map(p => (
@@ -143,7 +145,7 @@ const RescuedExportPanel: React.FC<RescuedExportPanelProps> = ({
                     <div className="rescued-search-item-info">
                       <div className="rescued-search-item-name">{p.name}</div>
                       <div className="rescued-search-item-meta">
-                        📍 {p.zoneName} · {p.age} años · {p.condition.toUpperCase()}
+                        📍 {p.zoneName} · {p.age} {t('rescued.yearsOld')} · {p.condition.toUpperCase()}
                       </div>
                     </div>
                     <span className="rescued-search-item-action">🗺️</span>
@@ -157,25 +159,25 @@ const RescuedExportPanel: React.FC<RescuedExportPanelProps> = ({
           <div className="rescued-stats">
             <div className="rescued-stat">
               <div className="rescued-stat-value">{rescuedPersons.length}</div>
-              <div className="rescued-stat-label">Total</div>
+              <div className="rescued-stat-label">{t('rescued.total')}</div>
             </div>
             <div className="rescued-stat" style={{ borderColor: '#22C55E' }}>
               <div className="rescued-stat-value" style={{ color: '#4ADE80' }}>
                 {rescuedPersons.filter(p => p.condition === 'bueno').length}
               </div>
-              <div className="rescued-stat-label">Buen Estado</div>
+              <div className="rescued-stat-label">{t('rescued.goodCondition')}</div>
             </div>
             <div className="rescued-stat" style={{ borderColor: '#F59E0B' }}>
               <div className="rescued-stat-value" style={{ color: '#FBBF24' }}>
                 {rescuedPersons.filter(p => p.condition === 'herido').length}
               </div>
-              <div className="rescued-stat-label">Heridos</div>
+              <div className="rescued-stat-label">{t('rescued.injured')}</div>
             </div>
             <div className="rescued-stat" style={{ borderColor: '#EF4444' }}>
               <div className="rescued-stat-value" style={{ color: '#F87171' }}>
                 {rescuedPersons.filter(p => p.condition === 'critico').length}
               </div>
-              <div className="rescued-stat-label">Crítico</div>
+              <div className="rescued-stat-label">{t('rescued.critical')}</div>
             </div>
           </div>
 
@@ -192,13 +194,13 @@ const RescuedExportPanel: React.FC<RescuedExportPanelProps> = ({
                       {p.gender === 'femenino' ? '👩' : p.gender === 'masculino' ? '👨' : '🧑'}
                     </div>
                     <div className="rescued-item-info">
-                      <div className="rescued-item-name">{p.name}, {p.age} años</div>
+                      <div className="rescued-item-name">{p.name}, {p.age} {t('rescued.yearsOld')}</div>
                       <div className="rescued-item-meta">
                         📍 {p.zoneName}
                         {terrainInfo && <> · {terrainInfo.icon} {terrainInfo.label}</>}
                       </div>
                       <div className="rescued-item-meta">
-                        🏥 {p.condition.toUpperCase()} · 🛟 {p.rescuedBy || 'Sin registro'}
+                        🏥 {p.condition.toUpperCase()} · 🛟 {p.rescuedBy || t('rescued.noRecord')}
                       </div>
                     </div>
                     <div className="rescued-item-actions">
@@ -207,7 +209,7 @@ const RescuedExportPanel: React.FC<RescuedExportPanelProps> = ({
                         target="_blank"
                         rel="noopener noreferrer"
                         className="rescued-verify-btn"
-                        title="Verificar en desaparecidos"
+                        title={t('rescued.verifyOnSite')}
                       >
                         🔍
                       </a>
@@ -215,7 +217,7 @@ const RescuedExportPanel: React.FC<RescuedExportPanelProps> = ({
                         <button
                           className="rescued-verify-btn"
                           onClick={() => handleSearchClick(p)}
-                          title="Ver en mapa"
+                          title={t('rescued.viewOnMap')}
                         >
                           🗺️
                         </button>
@@ -230,46 +232,46 @@ const RescuedExportPanel: React.FC<RescuedExportPanelProps> = ({
           {/* Add form toggle */}
           {!showForm ? (
             <button className="form-add-btn" onClick={() => setShowForm(true)}>
-              ➕ Registrar Persona Rescatada
+              {t('rescued.registerPerson')}
             </button>
           ) : (
             <div className="rescued-add-form">
-              <div className="form-section-title">📝 Datos de la Persona</div>
+              <div className="form-section-title">📝 {t('rescued.formName').replace(' *', '')}</div>
               <div className="form-row">
                 <div className="form-group">
-                  <label className="form-label">Nombre *</label>
-                  <input className="form-input" placeholder="Nombre completo" value={name} onChange={e => setName(e.target.value)} />
+                  <label className="form-label">{t('rescued.formName')}</label>
+                  <input className="form-input" placeholder="..." value={name} onChange={e => setName(e.target.value)} />
                 </div>
                 <div className="form-group">
-                  <label className="form-label">Edad</label>
+                  <label className="form-label">{t('rescued.formAge')}</label>
                   <input className="form-input" type="number" value={age} onChange={e => setAge(parseInt(e.target.value) || 0)} />
                 </div>
               </div>
               <div className="form-row">
                 <div className="form-group">
-                  <label className="form-label">Sexo</label>
+                  <label className="form-label">{t('rescued.formGender')}</label>
                   <select className="form-select" value={gender} onChange={e => setGender(e.target.value as typeof gender)}>
-                    <option value="masculino">👨 Masculino</option>
-                    <option value="femenino">👩 Femenino</option>
-                    <option value="otro">🧑 Otro</option>
+                    <option value="masculino">{t('rescued.formMale')}</option>
+                    <option value="femenino">{t('rescued.formFemale')}</option>
+                    <option value="otro">{t('rescued.formOther')}</option>
                   </select>
                 </div>
                 <div className="form-group">
-                  <label className="form-label">Condición</label>
+                  <label className="form-label">{t('rescued.formCondition')}</label>
                   <select className="form-select" value={condition} onChange={e => setCondition(e.target.value as typeof condition)}>
-                    <option value="bueno">✅ Bueno</option>
-                    <option value="herido">⚠️ Herido</option>
-                    <option value="critico">🔴 Crítico</option>
+                    <option value="bueno">{t('rescued.formGood')}</option>
+                    <option value="herido">{t('rescued.formInjured')}</option>
+                    <option value="critico">{t('rescued.formCritical')}</option>
                   </select>
                 </div>
               </div>
               <div className="form-group">
-                <label className="form-label">Zona de Rescate *</label>
-                <input className="form-input" placeholder="Nombre de la zona" value={zoneName} onChange={e => setZoneName(e.target.value)} />
+                <label className="form-label">{t('rescued.formZone')}</label>
+                <input className="form-input" placeholder="..." value={zoneName} onChange={e => setZoneName(e.target.value)} />
               </div>
               <div className="form-row">
                 <div className="form-group">
-                  <label className="form-label">Terreno</label>
+                  <label className="form-label">{t('rescued.formTerrain')}</label>
                   <select className="form-select" value={terrain} onChange={e => setTerrain(e.target.value as TerrainType)}>
                     {Object.entries(TERRAIN_LABELS).map(([key, val]) => (
                       <option key={key} value={key}>{val.icon} {val.label}</option>
@@ -277,26 +279,26 @@ const RescuedExportPanel: React.FC<RescuedExportPanelProps> = ({
                   </select>
                 </div>
                 <div className="form-group">
-                  <label className="form-label">Rescatado por</label>
-                  <input className="form-input" placeholder="Nombre o grupo" value={rescuedBy} onChange={e => setRescuedBy(e.target.value)} />
+                  <label className="form-label">{t('rescued.formRescuedBy')}</label>
+                  <input className="form-input" placeholder="..." value={rescuedBy} onChange={e => setRescuedBy(e.target.value)} />
                 </div>
               </div>
               <div className="form-group">
-                <label className="form-label">Notas</label>
-                <textarea className="form-textarea" placeholder="Detalles adicionales..." value={notes} onChange={e => setNotes(e.target.value)} rows={2} />
+                <label className="form-label">{t('rescued.formNotes')}</label>
+                <textarea className="form-textarea" placeholder="..." value={notes} onChange={e => setNotes(e.target.value)} rows={2} />
               </div>
               <div className="form-row">
                 <div className="form-group">
-                  <label className="form-label">Latitud</label>
+                  <label className="form-label">{t('rescued.formLat')}</label>
                   <input className="form-input" type="number" step="any" value={lat} onChange={e => setLat(parseFloat(e.target.value) || 0)} />
                 </div>
                 <div className="form-group">
-                  <label className="form-label">Longitud</label>
+                  <label className="form-label">{t('rescued.formLng')}</label>
                   <input className="form-input" type="number" step="any" value={lng} onChange={e => setLng(parseFloat(e.target.value) || 0)} />
                 </div>
               </div>
               <button className="btn btn-primary" style={{ width: '100%', marginTop: 8 }} onClick={handleAdd}>
-                ✅ Registrar Persona
+                {t('rescued.formSubmit')}
               </button>
             </div>
           )}
@@ -305,10 +307,10 @@ const RescuedExportPanel: React.FC<RescuedExportPanelProps> = ({
           {rescuedPersons.length > 0 && (
             <div className="rescued-export-actions">
               <button className="btn btn-primary" onClick={() => onExportJSON(rescuedPersons)}>
-                📥 Exportar JSON
+                {t('rescued.exportJson')}
               </button>
               <button className="btn btn-secondary" onClick={() => onExportCSV(rescuedPersons)}>
-                📊 Exportar CSV
+                {t('rescued.exportCsv')}
               </button>
             </div>
           )}

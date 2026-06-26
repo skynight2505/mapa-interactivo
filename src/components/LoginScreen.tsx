@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { login } from '../utils/auth';
+import { useI18n } from '../utils/i18n';
 
 interface LoginScreenProps {
   onLogin: () => void;
@@ -10,6 +11,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin }) => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const { t } = useI18n();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -22,7 +24,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin }) => {
     if (result.success) {
       onLogin();
     } else {
-      setError(result.error || 'Error de autenticación');
+      setError(result.error || t('login.title'));
     }
   };
 
@@ -30,18 +32,18 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin }) => {
     <div className="login-overlay">
       <div className="login-card">
         <div className="login-logo">🔐</div>
-        <h2 className="login-title">Acceso de Administración</h2>
+        <h2 className="login-title">{t('login.title')}</h2>
         <p className="login-subtitle">
-          Inicia sesión para editar el mapa de terremoto
+          {t('login.subtitle')}
         </p>
 
         <form onSubmit={handleSubmit}>
           <div className="form-group">
-            <label className="form-label">Usuario</label>
+            <label className="form-label">{t('login.username')}</label>
             <input
               className="form-input"
               type="text"
-              placeholder="Tu usuario"
+              placeholder={t('login.usernamePlaceholder')}
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               required
@@ -50,11 +52,11 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin }) => {
           </div>
 
           <div className="form-group">
-            <label className="form-label">Contraseña</label>
+            <label className="form-label">{t('login.password')}</label>
             <input
               className="form-input"
               type="password"
-              placeholder="Tu contraseña"
+              placeholder={t('login.passwordPlaceholder')}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
@@ -70,7 +72,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin }) => {
             className="btn btn-primary login-btn"
             disabled={loading}
           >
-            {loading ? '⏳ Entrando...' : '🚪 Iniciar Sesión'}
+            {loading ? t('login.submitting') : t('login.submit')}
           </button>
         </form>
       </div>

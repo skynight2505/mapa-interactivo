@@ -8,11 +8,13 @@ import {
   getNotificationIcon,
 } from '../utils/notifications';
 import type { EmergencyNotification } from '../types';
+import { useI18n } from '../utils/i18n';
 
 const NotificationPanel: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [notifications, setNotifications] = useState<EmergencyNotification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
+  const { t } = useI18n();
 
   useEffect(() => {
     refresh();
@@ -44,12 +46,12 @@ const NotificationPanel: React.FC = () => {
   const formatTime = (dateStr: string) => {
     const diff = Date.now() - new Date(dateStr).getTime();
     const mins = Math.floor(diff / 60000);
-    if (mins < 1) return 'Ahora';
-    if (mins < 60) return `Hace ${mins}m`;
+    if (mins < 1) return t('notif.now');
+    if (mins < 60) return t('notif.minutesAgo').replace('Xm', `${mins}m`);
     const hrs = Math.floor(mins / 60);
-    if (hrs < 24) return `Hace ${hrs}h`;
+    if (hrs < 24) return t('notif.hoursAgo').replace('Xh', `${hrs}h`);
     const days = Math.floor(hrs / 24);
-    return `Hace ${days}d`;
+    return t('notif.daysAgo').replace('Xd', `${days}d`);
   };
 
   return (
@@ -57,7 +59,7 @@ const NotificationPanel: React.FC = () => {
       <button
         className={`header-action-btn notif-bell ${unreadCount > 0 ? 'has-unread' : ''}`}
         onClick={() => setIsOpen(!isOpen)}
-        title="Notificaciones de emergencia"
+        title={t('notif.emergencyTitle')}
       >
         🔔 {unreadCount > 0 && <span className="notif-badge">{unreadCount}</span>}
       </button>
@@ -66,11 +68,11 @@ const NotificationPanel: React.FC = () => {
         <div className="notif-dropdown">
           <div className="notif-dropdown-header">
             <span className="notif-dropdown-title">
-              🔔 Notificaciones {unreadCount > 0 && `(${unreadCount} nuevas)`}
+              🔔 {t('notif.title')} {unreadCount > 0 && `(${unreadCount})`}
             </span>
             {unreadCount > 0 && (
               <button className="notif-mark-all" onClick={handleMarkAllRead}>
-                ✅ Marcar todo leído
+                {t('notif.markAllRead')}
               </button>
             )}
           </div>
@@ -79,7 +81,7 @@ const NotificationPanel: React.FC = () => {
             {notifications.length === 0 ? (
               <div className="notif-empty">
                 <span className="notif-empty-icon">🔔</span>
-                <span>No hay notificaciones</span>
+                <span>{t('notif.empty')}</span>
               </div>
             ) : (
               notifications.slice(0, 30).map((notif) => (
@@ -117,7 +119,7 @@ const NotificationPanel: React.FC = () => {
                       e.stopPropagation();
                       handleDelete(notif.id);
                     }}
-                    title="Eliminar"
+                    title={t('notif.delete')}
                   >
                     ✕
                   </button>

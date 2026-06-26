@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import React from 'react';
+import { useI18n } from './utils/i18n';
 import Header from './components/Header';
 import FilterBar from './components/FilterBar';
 import Sidebar from './components/Sidebar';
@@ -27,6 +28,7 @@ interface ImportModalProps {
 
 function ImportModal({ onImport, onClose, error, setError }: ImportModalProps) {
   const fileRef = useRef<HTMLInputElement>(null);
+  const { t } = useI18n();
 
   const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -36,7 +38,7 @@ function ImportModal({ onImport, onClose, error, setError }: ImportModalProps) {
       const markers = await importFromJSON(file);
       onImport(markers);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error al importar');
+      setError(err instanceof Error ? err.message : t('import.error'));
     }
   };
 
@@ -44,17 +46,17 @@ function ImportModal({ onImport, onClose, error, setError }: ImportModalProps) {
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
-          <h2>📥 Importar Datos</h2>
+          <h2>{t('import.title')}</h2>
           <button className="modal-close" onClick={onClose}>✕</button>
         </div>
         <div className="modal-body">
           <p style={{ color: '#cbd5e1', fontSize: 14, marginBottom: 16 }}>
-            Selecciona un archivo JSON exportado desde esta aplicación para importar los datos.
-            Los marcadores existentes se mantendrán y se agregarán los nuevos.
+            {t('import.desc')}
+            {t('import.desc2')}
           </p>
 
           <div className="import-dropzone" onClick={() => fileRef.current?.click()}>
-            📁 Haz clic aquí para seleccionar un archivo JSON
+            {t('import.dropzone')}
             <input
               ref={fileRef}
               type="file"
@@ -67,7 +69,7 @@ function ImportModal({ onImport, onClose, error, setError }: ImportModalProps) {
           {error && <div className="login-error" style={{ marginTop: 12 }}>⚠️ {error}</div>}
         </div>
         <div className="modal-footer">
-          <button className="btn btn-secondary" onClick={onClose}>Cancelar</button>
+          <button className="btn btn-secondary" onClick={onClose}>{t('form.cancel')}</button>
         </div>
       </div>
     </div>
@@ -95,6 +97,7 @@ function App() {
   const [showRescuedLayer, setShowRescuedLayer] = useState(false);
   const [highlightedRescuedId, setHighlightedRescuedId] = useState<string | null>(null);
   const [showAdminPanel, setShowAdminPanel] = useState(false);
+  const { t } = useI18n();
 
   // Load markers, check auth, and generate notifications on mount
   useEffect(() => {
@@ -306,12 +309,12 @@ function App() {
 
           {isPlacingMarker && (
             <div className="click-marker-prompt">
-              📍 Haz clic en el mapa para colocar la nueva zona
+              {t('map.clickToPlace')}
               <button
                 className="click-marker-cancel"
                 onClick={() => setIsPlacingMarker(false)}
               >
-                Cancelar
+                {t('map.cancel')}
               </button>
             </div>
           )}
