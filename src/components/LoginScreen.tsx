@@ -73,16 +73,6 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin }) => {
             {loading ? '⏳ Entrando...' : '🚪 Iniciar Sesión'}
           </button>
         </form>
-
-        <div className="login-demo">
-          <div className="login-demo-title">Credenciales de demostración:</div>
-          <div className="login-demo-item">
-            <strong>Admin:</strong> admin / admin123
-          </div>
-          <div className="login-demo-item">
-            <strong>Editor:</strong> editor / admin123
-          </div>
-        </div>
       </div>
     </div>
   );

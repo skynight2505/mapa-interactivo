@@ -922,27 +922,6 @@ html, body, #root { height: 100%; font-family: 'Inter', system-ui, sans-serif; }
   margin-bottom: 16px;
   text-align: left;
 }
-.login-demo {
-  margin-top: 24px;
-  padding-top: 20px;
-  border-top: 1px solid #334155;
-}
-.login-demo-title {
-  font-size: 11px;
-  color: #64748b;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin-bottom: 8px;
-  font-weight: 600;
-}
-.login-demo-item {
-  font-size: 13px;
-  color: #94a3b8;
-  margin-bottom: 4px;
-}
-.login-demo-item strong {
-  color: #e2e8f0;
-}
 
 /* ===== IMPORT DROPZONE ===== */
 .import-dropzone {

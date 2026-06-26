@@ -39,12 +39,6 @@ function initializeDefaultUsers(): void {
         role: 'admin',
         displayName: 'Administrador',
       },
-      {
-        username: 'editor',
-        passwordHash: simpleHash('admin123'),
-        role: 'editor',
-        displayName: 'Editor',
-      },
     ];
     localStorage.setItem(USERS_KEY, JSON.stringify(defaultUsers));
   }
