@@ -220,7 +220,7 @@ const GoogleMap: React.FC<GoogleMapProps> = ({
         if (map.getZoom()! < 14) map.setZoom(14);
       }
     }
-  }, [visibleMarkers, selectedId, createIcon, onMarkerClick]);
+  }, [visibleMarkers, selectedId, createIcon, onMarkerClick, mapReady]);
 
   useEffect(() => {
     const map = mapInstanceRef.current;
@@ -241,7 +241,7 @@ const GoogleMap: React.FC<GoogleMapProps> = ({
         const marker = new google.maps.Marker({
           position: { lat: person.lat, lng: person.lng },
           map,
-          icon: { url: createRescuedIcon(person.condition) } as google.maps.Icon,
+          icon: { url: createRescuedIcon(person.condition), anchor: new google.maps.Point(14, 14) } as google.maps.Icon,
           title: `${person.name} - ${person.condition}`,
           zIndex: 500,
         });
@@ -271,7 +271,7 @@ const GoogleMap: React.FC<GoogleMapProps> = ({
         const marker = new google.maps.Marker({
           position: { lat: cluster.lat, lng: cluster.lng },
           map,
-          icon: { url: createClusterIcon(cluster.count) } as google.maps.Icon,
+          icon: { url: createClusterIcon(cluster.count), anchor: new google.maps.Point(30, 30) } as google.maps.Icon,
           title: `${cluster.count} personas rescatadas`,
           zIndex: 600,
         });
@@ -298,7 +298,7 @@ const GoogleMap: React.FC<GoogleMapProps> = ({
         clusterMarkersRef.current.push(marker);
       });
     }
-  }, [showRescuedLayer, rescuedPersons]);
+  }, [showRescuedLayer, rescuedPersons, mapReady]);
 
   useEffect(() => {
     const map = mapInstanceRef.current;
@@ -320,7 +320,7 @@ const GoogleMap: React.FC<GoogleMapProps> = ({
             ${person.condition.toUpperCase()}
           </span><br/>
           <span style="font-size:10px;color:#999;">📍 ${person.zoneName}</span><br/>
-          <span style="font-size:10px;color:#999;">Rescatado por: ${person.rescuedBy || 'N/A'}</span>
+          <span style="font-size:10px;color:#999;">${person.rescuedBy || 'N/A'}</span>
         </div>`
       );
       const marker = rescuedMarkersRef.current.find(m => {
@@ -339,7 +339,7 @@ const GoogleMap: React.FC<GoogleMapProps> = ({
       if (onHighlightRescuedClear) onHighlightRescuedClear();
     }, 3000);
     return () => clearTimeout(timer);
-  }, [highlightedRescuedId, showRescuedLayer, rescuedPersons, onHighlightRescuedClear]);
+  }, [highlightedRescuedId, showRescuedLayer, rescuedPersons, onHighlightRescuedClear, mapReady]);
 
   if (!apiKey) {
     return (
