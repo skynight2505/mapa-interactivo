@@ -1,12 +1,6 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useCallback, useState } from 'react';
 import type { MapMarker, MarkerType, RescuedPerson } from '../types';
 import { CATEGORIES } from '../utils/categories';
-
-declare global {
-  interface Window {
-    initGoogleMaps: () => void;
-  }
-}
 
 interface Cluster {
   lat: number;
@@ -51,45 +45,44 @@ function clusterPersons(persons: RescuedPerson[], minDistance: number = 0.003): 
   return clusters;
 }
 
-function createPinSvg(type: MarkerType, isSelected: boolean): string {
+function createSvgIcon(type: MarkerType, isSelected: boolean): string {
   const cat = CATEGORIES[type];
   const size = isSelected ? 44 : 36;
   const r = size / 2 - 2;
   const cx = size / 2;
   const cy = size / 2;
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
-    <circle cx="${cx}" cy="${cy}" r="${r}" fill="${cat.color}" stroke="${isSelected ? '#fff' : 'transparent'}" stroke-width="${isSelected ? 3 : 0}" opacity="${isSelected ? 1 : 0.9}"/>
-    <text x="${cx}" y="${cy + 2}" text-anchor="middle" dominant-baseline="central" font-size="${size * 0.45}">${cat.icon}</text>
-  </svg>`;
+  return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(
+    `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
+      <circle cx="${cx}" cy="${cy}" r="${r}" fill="${cat.color}" stroke="${isSelected ? '#fff' : 'transparent'}" stroke-width="${isSelected ? 3 : 0}" opacity="${isSelected ? 1 : 0.9}"/>
+      <text x="${cx}" y="${cy + 2}" text-anchor="middle" dominant-baseline="central" font-size="${size * 0.45}">${cat.icon}</text>
+    </svg>`
+  )}`;
 }
 
-function createClusterSvg(count: number): string {
+function createClusterIcon(count: number): string {
   const size = Math.min(60, 40 + count * 4);
   const color = count >= 10 ? '#EF4444' : count >= 5 ? '#F59E0B' : '#22C55E';
   const cx = size / 2;
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
-    <circle cx="${cx}" cy="${cx}" r="${cx - 2}" fill="${color}" stroke="#fff" stroke-width="2" opacity="0.9"/>
-    <text x="${cx}" y="${cx - 4}" text-anchor="middle" dominant-baseline="central" font-size="${size * 0.25}" fill="#fff" font-weight="bold">🏥</text>
-    <text x="${cx}" y="${cx + 8}" text-anchor="middle" dominant-baseline="central" font-size="${size * 0.3}" fill="#fff" font-weight="bold">${count}</text>
-  </svg>`;
+  return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(
+    `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
+      <circle cx="${cx}" cy="${cx}" r="${cx - 2}" fill="${color}" stroke="#fff" stroke-width="2" opacity="0.9"/>
+      <text x="${cx}" y="${cx - 4}" text-anchor="middle" dominant-baseline="central" font-size="${size * 0.25}" fill="#fff" font-weight="bold">🏥</text>
+      <text x="${cx}" y="${cx + 8}" text-anchor="middle" dominant-baseline="central" font-size="${size * 0.3}" fill="#fff" font-weight="bold">${count}</text>
+    </svg>`
+  )}`;
 }
 
-function createRescuedSvg(condition: string): string {
+function createRescuedIcon(condition: string): string {
   const color = condition === 'bueno' ? '#22C55E' : condition === 'herido' ? '#F59E0B' : '#EF4444';
   const icon = condition === 'bueno' ? '✅' : condition === 'herido' ? '⚠️' : '🚑';
   const size = 28;
   const cx = size / 2;
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
-    <circle cx="${cx}" cy="${cx}" r="${cx - 2}" fill="${color}" stroke="#fff" stroke-width="2" opacity="0.95"/>
-    <text x="${cx}" y="${cx + 2}" text-anchor="middle" dominant-baseline="central" font-size="${size * 0.5}">${icon}</text>
-  </svg>`;
-}
-
-function svgToElement(svgStr: string): Element {
-  const el = document.createElement('div');
-  el.innerHTML = svgStr;
-  const svg = el.firstElementChild!;
-  return svg;
+  return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(
+    `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
+      <circle cx="${cx}" cy="${cx}" r="${cx - 2}" fill="${color}" stroke="#fff" stroke-width="2" opacity="0.95"/>
+      <text x="${cx}" y="${cx + 2}" text-anchor="middle" dominant-baseline="central" font-size="${size * 0.5}">${icon}</text>
+    </svg>`
+  )}`;
 }
 
 const GoogleMap: React.FC<GoogleMapProps> = ({
@@ -99,16 +92,29 @@ const GoogleMap: React.FC<GoogleMapProps> = ({
 }) => {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<google.maps.Map | null>(null);
-  const markersMapRef = useRef<Map<string, google.maps.marker.AdvancedMarkerElement>>(new Map());
-  const rescuedMarkersRef = useRef<google.maps.marker.AdvancedMarkerElement[]>([]);
-  const clusterMarkersRef = useRef<google.maps.marker.AdvancedMarkerElement[]>([]);
+  const markersMapRef = useRef<Map<string, google.maps.Marker>>(new Map());
+  const rescuedMarkersRef = useRef<google.maps.Marker[]>([]);
+  const clusterMarkersRef = useRef<google.maps.Marker[]>([]);
   const infoWindowRef = useRef<google.maps.InfoWindow | null>(null);
-
   const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || '';
 
   const visibleMarkers = activeFilters.length === 0
     ? markers
     : markers.filter((m) => activeFilters.includes(m.type));
+
+  const [mapReady, setMapReady] = useState(false);
+  const [mapError, setMapError] = useState('');
+
+  const createIcon = useCallback((type: MarkerType, isSelected: boolean): google.maps.Icon => {
+    const svg = createSvgIcon(type, isSelected);
+    const sizeVal = isSelected ? 44 : 36;
+    return {
+      url: svg,
+      size: new google.maps.Size(sizeVal, sizeVal),
+      scaledSize: new google.maps.Size(sizeVal, sizeVal),
+      anchor: new google.maps.Point(sizeVal / 2, sizeVal / 2),
+    };
+  }, []);
 
   useEffect(() => {
     if (!mapRef.current || mapInstanceRef.current) return;
@@ -120,11 +126,11 @@ const GoogleMap: React.FC<GoogleMapProps> = ({
     }
 
     const script = document.createElement('script');
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places,marker&language=es&loading=async`;
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&language=es&loading=async`;
     script.async = true;
     script.defer = true;
-    window.initGoogleMaps = () => initMap();
     script.onload = () => initMap();
+    script.onerror = () => setMapError('No se pudo cargar Google Maps. Verifica tu conexión y que la API Key sea válida.');
     document.head.appendChild(script);
 
     return () => {
@@ -136,7 +142,6 @@ const GoogleMap: React.FC<GoogleMapProps> = ({
 
   function initMap() {
     if (!mapRef.current || mapInstanceRef.current) return;
-
     const map = new google.maps.Map(mapRef.current, {
       center: { lat: 10.4806, lng: -66.9036 },
       zoom: 12,
@@ -161,15 +166,12 @@ const GoogleMap: React.FC<GoogleMapProps> = ({
       fullscreenControl: true,
       zoomControl: true,
     });
-
     mapInstanceRef.current = map;
     infoWindowRef.current = new google.maps.InfoWindow();
-
+    setMapReady(true);
     if (onMapClick) {
       map.addListener('click', (e: google.maps.MapMouseEvent) => {
-        if (e.latLng) {
-          onMapClick(e.latLng.lat(), e.latLng.lng());
-        }
+        if (e.latLng) onMapClick(e.latLng.lat(), e.latLng.lng());
       });
     }
   }
@@ -178,25 +180,22 @@ const GoogleMap: React.FC<GoogleMapProps> = ({
     const map = mapInstanceRef.current;
     if (!map) return;
 
-    markersMapRef.current.forEach((marker) => marker.map = null);
+    markersMapRef.current.forEach((marker) => marker.setMap(null));
     markersMapRef.current.clear();
 
     visibleMarkers.forEach((data) => {
       const isSelected = data.id === selectedId;
-      const svgStr = createPinSvg(data.type, isSelected);
-      const content = svgToElement(svgStr);
-
-      const marker = new google.maps.marker.AdvancedMarkerElement({
+      const marker = new google.maps.Marker({
         position: { lat: data.lat, lng: data.lng },
         map,
-        content,
+        icon: createIcon(data.type, isSelected),
         title: data.title,
+        animation: isSelected ? google.maps.Animation.BOUNCE : undefined,
         zIndex: isSelected ? 1000 : 1,
       });
 
       marker.addListener('click', () => onMarkerClick(data));
-
-      marker.addListener('mouseenter', () => {
+      marker.addListener('mouseover', () => {
         if (infoWindowRef.current) {
           const cat = CATEGORIES[data.type];
           const terrainInfo = data.terrain ? ` · ${data.terrain}` : '';
@@ -209,32 +208,27 @@ const GoogleMap: React.FC<GoogleMapProps> = ({
           infoWindowRef.current.open(map, marker);
         }
       });
-
-      marker.addListener('mouseleave', () => {
-        if (infoWindowRef.current) {
-          infoWindowRef.current.close();
-        }
-      });
+      marker.addListener('mouseout', () => infoWindowRef.current?.close());
 
       markersMapRef.current.set(data.id, marker);
     });
 
     if (selectedId) {
       const selectedMarker = markersMapRef.current.get(selectedId);
-      if (selectedMarker?.position) {
-        map.panTo(selectedMarker.position);
+      if (selectedMarker) {
+        map.panTo(selectedMarker.getPosition()!);
         if (map.getZoom()! < 14) map.setZoom(14);
       }
     }
-  }, [visibleMarkers, selectedId, onMarkerClick]);
+  }, [visibleMarkers, selectedId, createIcon, onMarkerClick]);
 
   useEffect(() => {
     const map = mapInstanceRef.current;
     if (!map) return;
 
-    rescuedMarkersRef.current.forEach(m => m.map = null);
+    rescuedMarkersRef.current.forEach(m => m.setMap(null));
     rescuedMarkersRef.current = [];
-    clusterMarkersRef.current.forEach(m => m.map = null);
+    clusterMarkersRef.current.forEach(m => m.setMap(null));
     clusterMarkersRef.current = [];
 
     if (!showRescuedLayer || rescuedPersons.length === 0) return;
@@ -244,13 +238,10 @@ const GoogleMap: React.FC<GoogleMapProps> = ({
 
     if (zoom >= 14 || rescuedPersons.length <= 10) {
       rescuedPersons.forEach(person => {
-        const svgStr = createRescuedSvg(person.condition);
-        const content = svgToElement(svgStr);
-
-        const marker = new google.maps.marker.AdvancedMarkerElement({
+        const marker = new google.maps.Marker({
           position: { lat: person.lat, lng: person.lng },
           map,
-          content,
+          icon: { url: createRescuedIcon(person.condition) } as google.maps.Icon,
           title: `${person.name} - ${person.condition}`,
           zIndex: 500,
         });
@@ -277,13 +268,10 @@ const GoogleMap: React.FC<GoogleMapProps> = ({
       });
     } else {
       clusters.forEach(cluster => {
-        const svgStr = createClusterSvg(cluster.count);
-        const content = svgToElement(svgStr);
-
-        const marker = new google.maps.marker.AdvancedMarkerElement({
+        const marker = new google.maps.Marker({
           position: { lat: cluster.lat, lng: cluster.lng },
           map,
-          content,
+          icon: { url: createClusterIcon(cluster.count) } as google.maps.Icon,
           title: `${cluster.count} personas rescatadas`,
           zIndex: 600,
         });
@@ -335,9 +323,8 @@ const GoogleMap: React.FC<GoogleMapProps> = ({
           <span style="font-size:10px;color:#999;">Rescatado por: ${person.rescuedBy || 'N/A'}</span>
         </div>`
       );
-
       const marker = rescuedMarkersRef.current.find(m => {
-        const pos = m.position as unknown as google.maps.LatLng | null;
+        const pos = m.getPosition();
         return pos && Math.abs(pos.lat() - person.lat) < 0.0001 && Math.abs(pos.lng() - person.lng) < 0.0001;
       });
       if (marker) {
@@ -364,9 +351,7 @@ const GoogleMap: React.FC<GoogleMapProps> = ({
             Para ver el mapa interactivo de Venezuela, necesitas configurar tu API Key de Google Maps.
             Crea un archivo <code style={{ color: '#f59e0b' }}>.env</code> en la raíz del proyecto:
           </div>
-          <div className="map-placeholder-code">
-            VITE_GOOGLE_MAPS_API_KEY=tu_api_key_aquí
-          </div>
+          <div className="map-placeholder-code">VITE_GOOGLE_MAPS_API_KEY=tu_api_key_aquí</div>
           <div className="map-placeholder-sub" style={{ marginTop: 12 }}>
             <strong>¿Cómo obtener tu clave?</strong><br/>
             1. Ve a <a href="https://console.cloud.google.com/" target="_blank" style={{ color: '#60a5fa' }}>console.cloud.google.com</a><br/>
@@ -379,9 +364,27 @@ const GoogleMap: React.FC<GoogleMapProps> = ({
     );
   }
 
+  if (mapError) {
+    return (
+      <div className="map-container">
+        <div className="map-placeholder">
+          <div className="map-placeholder-icon">⚠️</div>
+          <div className="map-placeholder-text">Error al cargar Google Maps</div>
+          <div className="map-placeholder-sub">{mapError}</div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="map-container">
       <div ref={mapRef} style={{ width: '100%', height: '100%' }} />
+      {!mapReady && (
+        <div className="map-loading">
+          <div className="map-loading-spinner" />
+          <span>Cargando mapa...</span>
+        </div>
+      )}
       {onToggleRescuedLayer && (
         <div className="map-layer-toggle">
           <button
@@ -390,9 +393,7 @@ const GoogleMap: React.FC<GoogleMapProps> = ({
             title={showRescuedLayer ? 'Ocultar personas rescatadas' : 'Mostrar personas rescatadas'}
           >
             🏥 Rescatados {showRescuedLayer ? 'ON' : 'OFF'}
-            {rescuedPersons.length > 0 && (
-              <span className="map-layer-count">{rescuedPersons.length}</span>
-            )}
+            {rescuedPersons.length > 0 && <span className="map-layer-count">{rescuedPersons.length}</span>}
           </button>
         </div>
       )}
