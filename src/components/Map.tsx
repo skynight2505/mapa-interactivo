@@ -224,7 +224,7 @@ const GoogleMap: React.FC<GoogleMapProps> = ({
   }, [highlightedRescuedId, showRescuedLayer, rescuedPersons, onHighlightRescuedClear]);
 
   return (
-    <div className="map-container">
+    <div style={{ position: 'absolute', inset: 0 }}>
       <div ref={mapRef} style={{ width: '100%', height: '100%' }} />
       {!mapReady && (
         <div className="map-loading">
