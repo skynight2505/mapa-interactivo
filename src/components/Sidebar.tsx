@@ -1,0 +1,182 @@
+import React, { useState, useMemo } from 'react';
+import { CATEGORIES } from '../utils/categories';
+import type { MapMarker } from '../types';
+
+interface SidebarProps {
+  markers: MapMarker[];
+  selectedId: string | null;
+  onSelect: (marker: MapMarker) => void;
+  onDelete: (id: string) => void;
+  onEdit: (marker: MapMarker) => void;
+  isEditMode: boolean;
+  collapsed: boolean;
+  onToggleCollapse: () => void;
+  onAddNew: () => void;
+}
+
+const Sidebar: React.FC<SidebarProps> = ({
+  markers,
+  selectedId,
+  onSelect,
+  onDelete,
+  onEdit,
+  isEditMode,
+  collapsed,
+  onToggleCollapse,
+  onAddNew,
+}) => {
+  const [search, setSearch] = useState('');
+
+  const filtered = useMemo(() => {
+    if (!search.trim()) return markers;
+    const q = search.toLowerCase();
+    return markers.filter(
+      (m) =>
+        m.title.toLowerCase().includes(q) ||
+        m.description.toLowerCase().includes(q) ||
+        CATEGORIES[m.type].label.toLowerCase().includes(q)
+    );
+  }, [markers, search]);
+
+  return (
+    <>
+      <aside className={`sidebar ${collapsed ? 'collapsed' : ''}`}>
+        <div className="sidebar-search">
+          <div className="search-wrapper">
+            <span className="search-icon">🔍</span>
+            <input
+              type="text"
+              placeholder="Buscar zonas..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </div>
+        </div>
+
+        <div className="sidebar-list">
+          {filtered.length === 0 ? (
+            <div className="sidebar-empty">
+              <div className="sidebar-empty-icon">📋</div>
+              <div className="sidebar-empty-text">
+                {search ? 'No se encontraron resultados' : 'No hay zonas registradas'}
+              </div>
+            </div>
+          ) : (
+            filtered.map((marker) => {
+              const cat = CATEGORIES[marker.type];
+              return (
+                <div
+                  key={marker.id}
+                  className={`marker-card ${selectedId === marker.id ? 'selected' : ''}`}
+                  onClick={() => onSelect(marker)}
+                >
+                  <div
+                    className="marker-card-icon"
+                    style={{ backgroundColor: cat.bgColor }}
+                  >
+                    {cat.icon}
+                  </div>
+                  <div className="marker-card-content">
+                    <div className="marker-card-title">{marker.title}</div>
+                    <div className="marker-card-desc">{marker.description}</div>
+                    <div className="marker-card-meta">
+                      <span
+                        className="marker-card-badge"
+                        style={{
+                          backgroundColor: cat.bgColor,
+                          color: cat.color,
+                        }}
+                      >
+                        {cat.label}
+                      </span>
+                      {marker.severity && (
+                        <span
+                          className="marker-card-badge"
+                          style={{
+                            backgroundColor:
+                              marker.severity === 'critica'
+                                ? '#FEE2E2'
+                                : marker.severity === 'alta'
+                                ? '#FFF7ED'
+                                : marker.severity === 'media'
+                                ? '#FEFCE8'
+                                : '#F0FDF4',
+                            color:
+                              marker.severity === 'critica'
+                                ? '#DC2626'
+                                : marker.severity === 'alta'
+                                ? '#EA580C'
+                                : marker.severity === 'media'
+                                ? '#CA8A04'
+                                : '#16A34A',
+                          }}
+                        >
+                          {marker.severity}
+                        </span>
+                      )}
+                      {marker.groups.length > 0 && (
+                        <span className="marker-card-badge" style={{ backgroundColor: '#DBEAFE', color: '#2563EB' }}>
+                          👥 {marker.groups.length}
+                        </span>
+                      )}
+                      {marker.supplies.length > 0 && (
+                        <span className="marker-card-badge" style={{ backgroundColor: '#F0FDF4', color: '#16A34A' }}>
+                          📦 {marker.supplies.length}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  {isEditMode && (
+                    <div className="marker-card-actions">
+                      <button
+                        title="Editar"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onEdit(marker);
+                        }}
+                      >
+                        ✏️
+                      </button>
+                      <button
+                        title="Eliminar"
+                        className="danger"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (confirm('¿Eliminar esta zona?')) {
+                            onDelete(marker.id);
+                          }
+                        }}
+                      >
+                        🗑️
+                      </button>
+                    </div>
+                  )}
+                </div>
+              );
+            })
+          )}
+        </div>
+
+        <div className="sidebar-count">
+          Mostrando {filtered.length} de {markers.length} zonas
+        </div>
+
+        {isEditMode && (
+          <div className="sidebar-footer">
+            <button className="add-marker-btn" onClick={onAddNew}>
+              ➕ Agregar nueva zona
+            </button>
+          </div>
+        )}
+      </aside>
+      <button
+        className={`sidebar-toggle ${collapsed ? 'shifted' : ''}`}
+        onClick={onToggleCollapse}
+      >
+        {collapsed ? '▶' : '◀'}
+      </button>
+    </>
+  );
+};
+
+export default Sidebar;
