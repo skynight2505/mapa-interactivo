@@ -663,6 +663,39 @@ html, body, #root { height: 100%; font-family: 'Inter', system-ui, sans-serif; }
 }
 @keyframes spin { to { transform: rotate(360deg); } }
 
+/* ===== LEAFLET OVERRIDES (dark theme) ===== */
+.leaflet-container {
+  background: #1a2332 !important;
+}
+.leaflet-control-zoom a {
+  background: #1e293b !important;
+  color: #e2e8f0 !important;
+  border-color: #334155 !important;
+}
+.leaflet-control-zoom a:hover {
+  background: #334155 !important;
+}
+.leaflet-tooltip-custom {
+  background: #1e293b !important;
+  border: 1px solid #334155 !important;
+  color: #e2e8f0 !important;
+  font-family: Inter, system-ui, sans-serif !important;
+  font-size: 12px !important;
+  padding: 6px 10px !important;
+  border-radius: 8px !important;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.4) !important;
+}
+.leaflet-tooltip-custom::before {
+  border-top-color: #334155 !important;
+}
+.leaflet-tooltip-custom::after {
+  border-top-color: #1e293b !important;
+}
+.rescued-marker, .cluster-marker {
+  background: none !important;
+  border: none !important;
+}
+
 /* ===== MODALS ===== */
 .modal-overlay {
   position: fixed;
