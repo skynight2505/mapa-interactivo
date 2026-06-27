@@ -84,6 +84,10 @@ const GoogleMap: React.FC<GoogleMapProps> = ({
   const markersLayerRef = useRef<L.LayerGroup>(L.layerGroup());
   const rescuedLayerRef = useRef<L.LayerGroup>(L.layerGroup());
   const [mapReady, setMapReady] = useState(false);
+  const onMapClickRef = useRef(onMapClick);
+  onMapClickRef.current = onMapClick;
+  const onMarkerClickRef = useRef(onMarkerClick);
+  onMarkerClickRef.current = onMarkerClick;
 
   const visibleMarkers = activeFilters.length === 0
     ? markers
@@ -107,7 +111,7 @@ const GoogleMap: React.FC<GoogleMapProps> = ({
     }).addTo(map);
 
     map.on('click', (e: L.LeafletMouseEvent) => {
-      if (onMapClick) onMapClick(e.latlng.lat, e.latlng.lng);
+      if (onMapClickRef.current) onMapClickRef.current(e.latlng.lat, e.latlng.lng);
     });
 
     markersLayerRef.current.addTo(map);
