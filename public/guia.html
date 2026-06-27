@@ -143,6 +143,24 @@
     .card-grid .card .name { font-size: 13px; font-weight: 700; color: var(--text); }
     .card-grid .card .desc { font-size: 12px; color: var(--muted); margin-top: 4px; }
 
+    .diagram {
+      background: #0f172a;
+      border-radius: 12px;
+      padding: 20px;
+      margin: 16px 0;
+      text-align: center;
+      overflow-x: auto;
+    }
+    .diagram svg {
+      max-width: 100%;
+      height: auto;
+    }
+    .diagram-label {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 8px;
+    }
+
     @media (max-width: 640px) {
       .header { padding: 16px; flex-wrap: wrap; }
       .header h1 { font-size: 16px; }
@@ -207,6 +225,152 @@
     <section id="interfaz">
       <h2>2. Interfaz general</h2>
       <p>La pantalla principal se divide en estas secciones:</p>
+
+      <div class="diagram">
+        <svg viewBox="0 0 800 480" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <!-- Fondo -->
+          <rect width="800" height="480" rx="12" fill="#0f172a"/>
+          <!-- Header -->
+          <rect x="10" y="10" width="780" height="52" rx="8" fill="#1e293b" stroke="#334155" stroke-width="1.5"/>
+          <rect x="20" y="22" width="28" height="28" rx="6" fill="#ef4444"/>
+          <text x="34" y="41" font-size="12" text-anchor="middle" fill="#fff">🆘</text>
+          <text x="58" y="37" font-size="11" fill="#f8fafc" font-weight="700">Mapa Interactivo de Emergencia</text>
+          <text x="58" y="50" font-size="9" fill="#94a3b8">42 marcadores</text>
+
+          <!-- Reloj en header -->
+          <rect x="240" y="18" width="80" height="36" rx="6" fill="none" stroke="#334155" stroke-width="1"/>
+          <text x="250" y="35" font-size="13" fill="#f8fafc" font-weight="700" font-family="monospace">14:32:07</text>
+          <text x="250" y="47" font-size="8" fill="#94a3b8">sábado, 27 de junio de 2026</text>
+
+          <!-- Idioma -->
+          <rect x="340" y="18" width="60" height="32" rx="6" fill="#1e293b" stroke="#334155" stroke-width="1"/>
+          <text x="360" y="38" font-size="11" fill="#e2e8f0" text-anchor="middle">🌐 ES</text>
+
+          <!-- Campana notificaciones -->
+          <rect x="410" y="18" width="32" height="32" rx="6" fill="#1e293b" stroke="#334155" stroke-width="1"/>
+          <text x="426" y="40" font-size="16" text-anchor="middle">🔔</text>
+          <circle cx="436" cy="20" r="7" fill="#ef4444"/>
+          <text x="436" y="24" font-size="8" fill="#fff" font-weight="700" text-anchor="middle">3</text>
+
+          <!-- Botón rescatista -->
+          <rect x="450" y="18" width="90" height="32" rx="6" fill="#1e293b" stroke="rgba(239,68,68,0.3)" stroke-width="1"/>
+          <text x="470" y="38" font-size="11" fill="#f87171">🚑 Rescatista</text>
+
+          <!-- Botón editar -->
+          <rect x="548" y="18" width="70" height="32" rx="6" fill="#1e293b" stroke="#334155" stroke-width="1"/>
+          <text x="568" y="38" font-size="11" fill="#94a3b8">✏️ Editar</text>
+
+          <!-- Avatar admin -->
+          <circle cx="660" cy="36" r="14" fill="none" stroke="#3b82f6" stroke-width="1.5"/>
+          <text x="660" y="40" font-size="11" fill="#60a5fa" text-anchor="middle">Admin</text>
+
+          <!-- Filter bar -->
+          <rect x="10" y="68" width="780" height="36" rx="8" fill="#1e293b" stroke="#334155" stroke-width="1"/>
+          <text x="22" y="90" font-size="9" fill="#64748b" font-weight="700">FILTROS:</text>
+          <rect x="72" y="76" width="80" height="20" rx="10" fill="#0f172a" stroke="#3b82f6" stroke-width="1.5"/>
+          <text x="112" y="90" font-size="9" fill="#60a5fa" text-anchor="middle">🏚️ Derrumbe</text>
+          <rect x="158" y="76" width="60" height="20" rx="10" fill="#0f172a" stroke="#334155" stroke-width="1"/>
+          <text x="188" y="90" font-size="9" fill="#94a3b8" text-anchor="middle">🚧 Vía</text>
+          <rect x="224" y="76" width="70" height="20" rx="10" fill="#0f172a" stroke="#334155" stroke-width="1"/>
+          <text x="259" y="90" font-size="9" fill="#94a3b8" text-anchor="middle">🏠 Refugio</text>
+          <rect x="300" y="76" width="70" height="20" rx="10" fill="#0f172a" stroke="#334155" stroke-width="1"/>
+          <text x="335" y="90" font-size="9" fill="#94a3b8" text-anchor="middle">⚠️ Riesgo</text>
+
+          <!-- Sidebar -->
+          <rect x="10" y="110" width="200" height="360" rx="8" fill="#1e293b" stroke="#334155" stroke-width="1.5"/>
+          <!-- Search bar -->
+          <rect x="20" y="120" width="180" height="28" rx="8" fill="#0f172a" stroke="#334155" stroke-width="1"/>
+          <text x="30" y="139" font-size="10" fill="#64748b">🔍 Buscar marcador...</text>
+          <!-- Marker cards -->
+          <rect x="18" y="155" width="184" height="48" rx="6" fill="rgba(255,255,255,0.03)" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+          <rect x="24" y="161" width="28" height="28" rx="6" fill="#1e3a5f"/>
+          <text x="38" y="181" font-size="12" text-anchor="middle">🏚️</text>
+          <text x="58" y="177" font-size="10" fill="#f8fafc" font-weight="600">Edificio derrumbado</text>
+          <text x="58" y="190" font-size="8" fill="#94a3b8">Av. Principal, Los Teques</text>
+          <rect x="18" y="208" width="184" height="48" rx="6" fill="rgba(255,255,255,0.03)" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+          <rect x="24" y="214" width="28" height="28" rx="6" fill="#1e3a5f"/>
+          <text x="38" y="234" font-size="12" text-anchor="middle">🚧</text>
+          <text x="58" y="230" font-size="10" fill="#f8fafc" font-weight="600">Vía obstruida</text>
+          <text x="58" y="243" font-size="8" fill="#94a3b8">Carretera Panamericana</text>
+          <rect x="18" y="261" width="184" height="48" rx="6" fill="rgba(255,255,255,0.03)" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+          <rect x="24" y="267" width="28" height="28" rx="6" fill="#1e3a5f"/>
+          <text x="38" y="287" font-size="12" text-anchor="middle">🏠</text>
+          <text x="58" y="283" font-size="10" fill="#f8fafc" font-weight="600">Refugio El Paraíso</text>
+          <text x="58" y="296" font-size="8" fill="#94a3b8">Capacidad: 120 pers.</text>
+
+          <!-- Botón colapsar sidebar -->
+          <rect x="210" y="260" width="12" height="40" rx="4" fill="#1e293b" stroke="#334155" stroke-width="1"/>
+          <text x="216" y="285" font-size="10" fill="#94a3b8" text-anchor="middle">◀</text>
+
+          <!-- Mapa -->
+          <rect x="228" y="110" width="480" height="360" rx="8" fill="#1a2332" stroke="#334155" stroke-width="1.5"/>
+          <!-- Grid del mapa -->
+          <line x1="340" y1="110" x2="340" y2="470" stroke="rgba(255,255,255,0.03)" stroke-width="1"/>
+          <line x1="560" y1="110" x2="560" y2="470" stroke="rgba(255,255,255,0.03)" stroke-width="1"/>
+          <line x1="228" y1="230" x2="708" y2="230" stroke="rgba(255,255,255,0.03)" stroke-width="1"/>
+          <line x1="228" y1="350" x2="708" y2="350" stroke="rgba(255,255,255,0.03)" stroke-width="1"/>
+
+          <!-- Marcadores en mapa -->
+          <!-- edificio -->
+          <rect x="340" y="195" width="22" height="22" rx="4" fill="#dc2626"/>
+          <text x="351" y="211" font-size="10" text-anchor="middle" fill="#fff">🏚️</text>
+          <!-- riesgo -->
+          <rect x="420" y="250" width="22" height="22" rx="4" fill="#f59e0b"/>
+          <text x="431" y="266" font-size="10" text-anchor="middle" fill="#fff">⚠️</text>
+          <!-- refugio -->
+          <rect x="500" y="180" width="22" height="22" rx="4" fill="#3b82f6"/>
+          <text x="511" y="196" font-size="10" text-anchor="middle" fill="#fff">🏠</text>
+          <!-- derrumbe -->
+          <rect x="480" y="310" width="22" height="22" rx="4" fill="#dc2626"/>
+          <text x="491" y="326" font-size="10" text-anchor="middle" fill="#fff">🏚️</text>
+          <!-- terremoto -->
+          <circle cx="590" cy="200" r="12" fill="none" stroke="#ef4444" stroke-width="2" opacity="0.5"/>
+          <circle cx="590" cy="200" r="8" fill="#ef4444"/>
+          <text x="590" y="204" font-size="9" text-anchor="middle" fill="#fff">🔴</text>
+          <text x="590" y="220" font-size="8" fill="#ef4444" text-anchor="middle">M6.2</text>
+
+          <!-- Zoom controls -->
+          <rect x="696" y="120" width="22" height="22" rx="4" fill="#1e293b" stroke="#334155" stroke-width="1"/>
+          <text x="707" y="136" font-size="14" text-anchor="middle" fill="#e2e8f0" font-weight="700">+</text>
+          <rect x="696" y="144" width="22" height="22" rx="4" fill="#1e293b" stroke="#334155" stroke-width="1"/>
+          <text x="707" y="160" font-size="14" text-anchor="middle" fill="#e2e8f0" font-weight="700">−</text>
+
+          <!-- Layer toggles -->
+          <rect x="696" y="390" width="12" height="12" rx="3" fill="#1e293b"/>
+          <text x="702" y="400" font-size="8" text-anchor="middle">🏥</text>
+          <rect x="696" y="406" width="12" height="12" rx="3" fill="#3b82f6"/>
+          <text x="702" y="416" font-size="8" text-anchor="middle">🌍</text>
+
+          <!-- Detail panel abajo -->
+          <rect x="320" y="410" width="320" height="55" rx="10" fill="#1e293b" stroke="#334155" stroke-width="1"/>
+          <rect x="332" y="418" width="28" height="28" rx="6" fill="#1e3a5f"/>
+          <text x="346" y="438" font-size="12" text-anchor="middle">🏚️</text>
+          <text x="366" y="433" font-size="11" fill="#f8fafc" font-weight="700">Edificio derrumbado</text>
+          <text x="366" y="448" font-size="9" fill="#94a3b8">Av. Principal, Los Teques · Severidad: Crítica</text>
+
+          <!-- Botón toggle sidebar -->
+          <rect x="708" y="460" width="80" height="20" rx="4" fill="#1e293b" stroke="#334155" stroke-width="1"/>
+          <text x="748" y="474" font-size="9" fill="#94a3b8" text-anchor="middle">🌍 Terremotos ON</text>
+
+          <!-- Nav tabs detalle -->
+          <rect x="320" y="465" width="60" height="16" rx="4" fill="#1e293b" stroke="#3b82f6" stroke-width="1"/>
+          <text x="350" y="477" font-size="8" fill="#60a5fa" text-anchor="middle">Info</text>
+          <rect x="385" y="465" width="60" height="16" rx="4" fill="#1e293b"/>
+          <text x="415" y="477" font-size="8" fill="#64748b" text-anchor="middle">Suministros</text>
+          <rect x="450" y="465" width="60" height="16" rx="4" fill="#1e293b"/>
+          <text x="480" y="477" font-size="8" fill="#64748b" text-anchor="middle">Grupos</text>
+
+          <!-- Labels -->
+          <text x="50" y="480" font-size="10" fill="#64748b">① Header</text>
+          <text x="140" y="480" font-size="10" fill="#64748b">② Filtros</text>
+          <text x="230" y="480" font-size="10" fill="#64748b">③ Mapa</text>
+          <text x="350" y="480" font-size="10" fill="#64748b">④ Panel detalle</text>
+          <text x="530" y="480" font-size="10" fill="#64748b">⑤ Layer toggles</text>
+          <text x="700" y="480" font-size="10" fill="#64748b">⑥ Zoom</text>
+        </svg>
+        <div class="diagram-label">Distribución de la interfaz principal — los números corresponden a las secciones descritas abajo</div>
+      </div>
+
       <ol class="step-list">
         <li><strong>Header (barra superior):</strong> muestra el logo, el título, el reloj, el selector de idioma, el botón de notificaciones, el modo rescatista, el modo edición, inicio de sesión y panel de admin.</li>
         <li><strong>Filter bar (barra de filtros):</strong> debajo del header. Contiene chips para filtrar marcadores por tipo y un botón para limpiar filtros.</li>
@@ -330,6 +494,56 @@
     <section id="notificaciones">
       <h2>6. Notificaciones</h2>
       <p>El sistema genera notificaciones automáticas para mantenerte informado:</p>
+
+      <div class="diagram">
+        <svg viewBox="0 0 500 280" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect width="500" height="280" rx="12" fill="#0f172a"/>
+          <!-- Botón campana en header -->
+          <rect x="30" y="10" width="36" height="36" rx="8" fill="#1e293b" stroke="#ef4444" stroke-width="1.5"/>
+          <text x="48" y="36" font-size="20" text-anchor="middle">🔔</text>
+          <circle cx="60" cy="14" r="8" fill="#ef4444"/>
+          <text x="60" y="18" font-size="10" fill="#fff" font-weight="700" text-anchor="middle">5</text>
+          <text x="20" y="62" font-size="9" fill="#64748b">Campana con 5 no leídas</text>
+
+          <!-- Dropdown de notificaciones -->
+          <rect x="160" y="10" width="320" height="260" rx="12" fill="#1e293b" stroke="#334155" stroke-width="1.5"/>
+          <rect x="160" y="10" width="320" height="36" rx="12" fill="#1e293b"/>
+          <rect x="160" y="28" width="320" height="18" fill="#1e293b"/>
+          <text x="178" y="34" font-size="12" fill="#f8fafc" font-weight="700">Notificaciones</text>
+          <text x="440" y="34" font-size="10" fill="#3b82f6" font-weight="600" cursor="pointer">Marcar todas</text>
+          <line x1="160" y1="46" x2="480" y2="46" stroke="#334155" stroke-width="1"/>
+
+          <!-- Notif 1 -->
+          <rect x="168" y="54" width="304" height="52" rx="8" fill="rgba(239,68,68,0.06)"/>
+          <circle cx="180" cy="74" r="4" fill="#ef4444"/>
+          <text x="192" y="74" font-size="16">🚨</text>
+          <text x="214" y="71" font-size="11" fill="#f8fafc" font-weight="700">🌊 Terremoto M6.2 - ¡ALERTA!</text>
+          <text x="214" y="86" font-size="10" fill="#94a3b8">45 km de Caracas · Prof: 10 km</text>
+          <text x="214" y="98" font-size="9" fill="#64748b">hace 2 min</text>
+
+          <!-- Notif 2 -->
+          <rect x="168" y="112" width="304" height="52" rx="8" fill="rgba(59,130,246,0.04)"/>
+          <circle cx="180" cy="132" r="4" fill="#3b82f6"/>
+          <text x="192" y="132" font-size="16">🏠</text>
+          <text x="214" y="129" font-size="11" fill="#f8fafc" font-weight="700">Refugio disponible</text>
+          <text x="214" y="144" font-size="10" fill="#94a3b8">Escuela Simón Bolívar · Capacidad: 200</text>
+          <text x="214" y="156" font-size="9" fill="#64748b">hace 15 min</text>
+
+          <!-- Notif 3 -->
+          <rect x="168" y="170" width="304" height="52" rx="8" fill="rgba(245,158,11,0.04)"/>
+          <circle cx="180" cy="190" r="4" fill="#f59e0b"/>
+          <text x="192" y="190" font-size="16">⚠️</text>
+          <text x="214" y="187" font-size="11" fill="#f8fafc" font-weight="700">Zona de riesgo identificada</text>
+          <text x="214" y="202" font-size="10" fill="#94a3b8">Cerro El Ávila · Severidad: Alta</text>
+          <text x="214" y="214" font-size="9" fill="#64748b">hace 32 min</text>
+
+          <!-- Flecha desde campana -->
+          <line x1="66" y1="30" x2="158" y2="30" stroke="#64748b" stroke-width="1" stroke-dasharray="4"/>
+          <polygon points="154,26 164,30 154,34" fill="#64748b"/>
+        </svg>
+        <div class="diagram-label">Al hacer clic en la campana se despliega el panel de notificaciones</div>
+      </div>
+
       <ul>
         <li><strong>🚨 Emergencias:</strong> marcadores críticos (personas atrapadas, edificios derrumbados con severidad crítica)</li>
         <li><strong>🌊 Terremotos:</strong> sismos M6+ (alerta roja), M5+ (warning naranja), M4.5+ (info amarilla) — datos en vivo desde USGS</li>
@@ -344,6 +558,59 @@
     <section id="terremotos">
       <h2>7. Terremotos en tiempo real</h2>
       <p>La aplicación obtiene automáticamente los terremotos de magnitud <strong>4.5+</strong> en todo el mundo desde la red <strong>USGS</strong> (Servicio Geológico de EE.UU.).</p>
+
+      <div class="diagram">
+        <svg viewBox="0 0 600 240" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect width="600" height="240" rx="12" fill="#0f172a"/>
+          <!-- Fondo mapa -->
+          <rect x="10" y="10" width="580" height="220" rx="8" fill="#1a2332" stroke="#334155" stroke-width="1.5"/>
+          <!-- Grid -->
+          <line x1="120" y1="10" x2="120" y2="230" stroke="rgba(255,255,255,0.03)" stroke-width="1"/>
+          <line x1="300" y1="10" x2="300" y2="230" stroke="rgba(255,255,255,0.03)" stroke-width="1"/>
+          <line x1="480" y1="10" x2="480" y2="230" stroke="rgba(255,255,255,0.03)" stroke-width="1"/>
+          <line x1="10" y1="80" x2="590" y2="80" stroke="rgba(255,255,255,0.03)" stroke-width="1"/>
+          <line x1="10" y1="160" x2="590" y2="160" stroke="rgba(255,255,255,0.03)" stroke-width="1"/>
+
+          <!-- M6+ con círculo onda -->
+          <circle cx="200" cy="110" r="50" fill="none" stroke="rgba(239,68,68,0.15)" stroke-width="2"/>
+          <circle cx="200" cy="110" r="16" fill="#ef4444"/>
+          <text x="200" y="115" font-size="16" text-anchor="middle" fill="#fff">🔴</text>
+          <text x="200" y="140" font-size="10" fill="#ef4444" text-anchor="middle" font-weight="700">M6.2</text>
+
+          <!-- M5+ -->
+          <circle cx="370" cy="80" r="10" fill="#f97316"/>
+          <text x="370" y="85" font-size="14" text-anchor="middle" fill="#fff">🟠</text>
+          <text x="370" y="106" font-size="10" fill="#f97316" text-anchor="middle" font-weight="600">M5.1</text>
+
+          <!-- M4.5+ -->
+          <circle cx="460" cy="160" r="8" fill="#eab308"/>
+          <text x="460" y="164" font-size="12" text-anchor="middle" fill="#fff">🟡</text>
+          <text x="460" y="182" font-size="10" fill="#eab308" text-anchor="middle" font-weight="600">M4.7</text>
+
+          <!-- Tooltip M6.2 -->
+          <rect x="120" y="30" width="180" height="50" rx="8" fill="#1e293b" stroke="#334155" stroke-width="1"/>
+          <text x="136" y="46" font-size="11" fill="#f8fafc" font-weight="700">🔴 M6.2</text>
+          <text x="136" y="60" font-size="10" fill="#94a3b8">Costa de Venezuela</text>
+          <text x="136" y="72" font-size="9" fill="#64748b">Prof: 12 km · 27/06/2026</text>
+          <line x1="190" y1="80" x2="200" y2="94" stroke="#64748b" stroke-width="1" stroke-dasharray="3"/>
+
+          <!-- Botón toggle -->
+          <rect x="520" y="16" width="62" height="28" rx="6" fill="#3b82f6" stroke="#3b82f6" stroke-width="1.5"/>
+          <text x="551" y="35" font-size="11" fill="#60a5fa" text-anchor="middle" font-weight="600">🌍 ON</text>
+          <line x1="520" y1="16" x2="520" y2="44" stroke="#3b82f6" stroke-width="2"/>
+
+          <!-- Leyenda -->
+          <rect x="16" y="190" width="120" height="30" rx="6" fill="#0f172a" stroke="#334155" stroke-width="1"/>
+          <circle cx="32" cy="205" r="6" fill="#ef4444"/>
+          <text x="42" y="209" font-size="9" fill="#ef4444">M6+</text>
+          <circle cx="68" cy="205" r="5" fill="#f97316"/>
+          <text x="78" y="209" font-size="9" fill="#f97316">M5+</text>
+          <circle cx="102" cy="205" r="4" fill="#eab308"/>
+          <text x="110" y="209" font-size="9" fill="#eab308">M4.5+</text>
+        </svg>
+        <div class="diagram-label">Los terremotos se muestran con círculos de colores según magnitud. Los M6+ incluyen onda expansiva</div>
+      </div>
+
       <ul>
         <li>Los datos se actualizan al cargar la página y se cachean por 10 minutos.</li>
         <li>Activa la capa con el botón <strong>"🌍 Terremotos ON/OFF"</strong> en la esquina superior derecha del mapa.</li>
@@ -358,6 +625,59 @@
     <section id="rescate">
       <h2>8. Modo rescatista</h2>
       <p>El modo rescatista es una herramienta avanzada para equipos de respuesta en terreno. Se activa desde el botón rojo <strong>"Rescatista"</strong> en el header.</p>
+
+      <div class="diagram">
+        <svg viewBox="0 0 600 280" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect width="600" height="280" rx="12" fill="#0f172a"/>
+          <!-- Panel rescatista -->
+          <rect x="20" y="10" width="560" height="260" rx="12" fill="#1e293b" stroke="rgba(239,68,68,0.3)" stroke-width="1.5"/>
+          <!-- Header -->
+          <rect x="20" y="10" width="560" height="44" rx="12" fill="rgba(239,68,68,0.08)"/>
+          <rect x="20" y="36" width="560" height="18" fill="rgba(239,68,68,0.08)"/>
+          <rect x="32" y="22" width="20" height="20" rx="4" fill="rgba(239,68,68,0.3)"/>
+          <text x="42" y="37" font-size="9" text-anchor="middle" fill="#fca5a5" font-weight="700">🚑</text>
+          <text x="58" y="36" font-size="13" fill="#f8fafc" font-weight="700">Modo Rescatista</text>
+          <rect x="500" y="24" width="60" height="16" rx="4" fill="rgba(239,68,68,0.2)" stroke="rgba(239,68,68,0.4)" stroke-width="1"/>
+          <text x="530" y="35" font-size="8" fill="#fca5a5" text-anchor="middle" font-weight="700">ACTIVO</text>
+
+          <!-- Tabs -->
+          <rect x="28" y="60" width="60" height="22" rx="6" fill="rgba(239,68,68,0.12)"/>
+          <text x="58" y="75" font-size="10" fill="#ef4444" text-anchor="middle" font-weight="600">📦 Suministros</text>
+          <rect x="92" y="60" width="60" height="22" rx="6" fill="#1e293b"/>
+          <text x="122" y="75" font-size="10" fill="#64748b" text-anchor="middle">🏥 Rescatados</text>
+          <rect x="156" y="60" width="60" height="22" rx="6" fill="#1e293b"/>
+          <text x="186" y="75" font-size="10" fill="#64748b" text-anchor="middle">👥 Grupos</text>
+          <rect x="220" y="60" width="60" height="22" rx="6" fill="#1e293b"/>
+          <text x="250" y="75" font-size="10" fill="#64748b" text-anchor="middle">⭐ Prioridad</text>
+
+          <!-- Contenido suministros -->
+          <rect x="28" y="90" width="544" height="28" rx="6" fill="rgba(255,255,255,0.02)"/>
+          <text x="40" y="108" font-size="11" fill="#f8fafc">💧 Agua potable</text>
+          <rect x="180" y="96" width="50" height="16" rx="4" fill="rgba(239,68,68,0.15)"/>
+          <text x="205" y="108" font-size="8" fill="#f87171" text-anchor="middle" font-weight="700">NECESITA</text>
+          <text x="260" y="108" font-size="10" fill="#94a3b8">| Cantidad: 200 L |</text>
+          <text x="370" y="108" font-size="10" fill="#60a5fa">➕ Agregar</text>
+
+          <rect x="28" y="124" width="544" height="28" rx="6" fill="rgba(255,255,255,0.02)"/>
+          <text x="40" y="142" font-size="11" fill="#f8fafc">🍞 Alimentos no perecibles</text>
+          <rect x="200" y="130" width="50" height="16" rx="4" fill="rgba(34,197,94,0.15)"/>
+          <text x="225" y="142" font-size="8" fill="#4ade80" text-anchor="middle" font-weight="700">DISPONIBLE</text>
+          <text x="280" y="142" font-size="10" fill="#94a3b8">| Cantidad: 500 raciones |</text>
+
+          <rect x="28" y="158" width="544" height="28" rx="6" fill="rgba(255,255,255,0.02)"/>
+          <text x="40" y="176" font-size="11" fill="#f8fafc">💊 Botiquín primeros auxilios</text>
+          <rect x="200" y="164" width="50" height="16" rx="4" fill="rgba(59,130,246,0.15)"/>
+          <text x="225" y="176" font-size="8" fill="#60a5fa" text-anchor="middle" font-weight="700">ENTREGADO</text>
+
+          <!-- Botón registrar -->
+          <rect x="28" y="198" width="544" height="34" rx="8" fill="rgba(239,68,68,0.12)" stroke="rgba(239,68,68,0.3)" stroke-width="1" stroke-dasharray="4"/>
+          <text x="300" y="219" font-size="12" fill="#ef4444" text-anchor="middle" font-weight="600">+ Registrar Rescatado</text>
+
+          <!-- Mini leyenda -->
+          <text x="28" y="248" font-size="9" fill="#64748b">● Suministros necesarios   ● Disponibles   ● Entregados</text>
+        </svg>
+        <div class="diagram-label">Panel de modo rescatista con pestañas de suministros, rescatados, grupos y prioridad</div>
+      </div>
 
       <h3>Registrar persona rescatada</h3>
       <ol class="step-list">
