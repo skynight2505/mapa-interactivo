@@ -58,10 +58,12 @@ function createDivIcon(html: string, size: number, className = ''): L.DivIcon {
   });
 }
 
-function pinHtml(type: MarkerType, isSelected: boolean): string {
+function pinHtml(type: MarkerType, isSelected: boolean, verified?: boolean): string {
   const cat = CATEGORIES[type];
   const s = isSelected ? 44 : 36;
-  return `<div style="width:${s}px;height:${s}px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:${cat.color};border:${isSelected ? '3px solid #fff' : 'none'};opacity:${isSelected ? 1 : 0.9};font-size:${s * 0.45}px;box-shadow:${isSelected ? '0 0 12px rgba(255,255,255,0.4)' : '0 2px 6px rgba(0,0,0,0.3)'};transition:all 0.2s">${cat.icon}</div>`;
+  const border = verified ? '2px solid #22c55e' : isSelected ? '3px solid #fff' : 'none';
+  const shadow = verified ? '0 0 12px rgba(34,197,94,0.5)' : isSelected ? '0 0 12px rgba(255,255,255,0.4)' : '0 2px 6px rgba(0,0,0,0.3)';
+  return `<div style="width:${s}px;height:${s}px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:${cat.color};border:${border};opacity:${isSelected ? 1 : 0.9};font-size:${s * 0.45}px;box-shadow:${shadow};transition:all 0.2s">${cat.icon}</div>`;
 }
 
 function clusterHtml(count: number): string {
@@ -140,7 +142,7 @@ export default function GoogleMap({
 
     visibleMarkers.forEach((data) => {
       const isSelected = data.id === selectedId;
-      const icon = createDivIcon(pinHtml(data.type, isSelected), isSelected ? 44 : 36);
+      const icon = createDivIcon(pinHtml(data.type, isSelected, data.verified), isSelected ? 44 : 36);
       const marker = L.marker([data.lat, data.lng], { icon }).addTo(layer);
 
       marker.bindTooltip(`<strong>${data.title}</strong>`, {

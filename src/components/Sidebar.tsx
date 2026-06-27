@@ -85,7 +85,10 @@ const Sidebar: React.FC<SidebarProps> = ({
                     {cat.icon}
                   </div>
                   <div className="marker-card-content">
-                    <div className="marker-card-title">{marker.title}</div>
+                    <div className="marker-card-title">
+                      {marker.title}
+                      {marker.verified && <span className="verified-badge-sm">✅</span>}
+                    </div>
                     <div className="marker-card-desc">{marker.description}</div>
                     <div className="marker-card-meta">
                       <span

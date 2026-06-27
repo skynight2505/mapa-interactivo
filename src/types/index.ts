@@ -51,6 +51,8 @@ export interface MapMarker {
   isActive?: boolean;
   createdAt: string;
   updatedAt: string;
+  verified?: boolean;
+  verifiedSource?: string;
 }
 
 // ===== PERSONAS RESCATADAS =====

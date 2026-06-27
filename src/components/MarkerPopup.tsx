@@ -81,7 +81,14 @@ const MarkerPopup: React.FC<MarkerPopupProps> = ({ marker, onClose, userCanEdit 
           {cat.icon}
         </div>
         <div className="detail-title-group">
-          <div className="detail-title">{marker.title}</div>
+          <div className="detail-title">
+            {marker.title}
+            {marker.verified && (
+              <span className="verified-badge" title={`Verificado por ${marker.verifiedSource || 'fuente oficial'}`}>
+                ✅ Verificado
+              </span>
+            )}
+          </div>
           <div className="detail-type">
             {cat.label}
             {marker.severity && (

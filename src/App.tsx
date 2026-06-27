@@ -5,6 +5,7 @@ import Header from './components/Header';
 import FilterBar from './components/FilterBar';
 import Sidebar from './components/Sidebar';
 import GoogleMap from './components/Map';
+
 import MarkerPopup from './components/MarkerPopup';
 import MarkerForm from './components/MarkerForm';
 import LoginScreen from './components/LoginScreen';
@@ -12,11 +13,11 @@ import AdminPanel from './components/AdminPanel';
 import RescuerModePanel from './components/RescuerModePanel';
 import RescuedExportPanel from './components/RescuedExportPanel';
 import OnboardingGuide from './components/OnboardingGuide';
-import { loadMarkers, saveMarkers, addMarker, updateMarker, deleteMarker } from './utils/storage';
+import { loadMarkers, saveMarkers, addMarker, updateMarker, deleteMarker, tryLoadFromCloud } from './utils/storage';
 import { getCurrentUser, logout, canEdit, canAdd, canDelete, type User } from './utils/auth';
 import { importFromJSON, exportToJSON, exportToCSV, exportRescuedJSON, exportRescuedCSV } from './utils/export';
 import { generateAutoNotifications, requestNotificationPermission } from './utils/notifications';
-import { fetchEarthquakes, cacheEarthquakes, loadCachedEarthquakes, generateEarthquakeNotifications, type EarthquakeEvent } from './utils/earthquake';
+import { fetchEarthquakes, cacheEarthquakes, loadCachedEarthquakes, generateEarthquakeNotifications, generateVerifiedMarkers, type EarthquakeEvent } from './utils/earthquake';
 import { SAMPLE_MARKERS } from './data/sampleData';
 import type { MapMarker, MarkerType, RescuedPerson } from './types';
 
@@ -101,6 +102,7 @@ function App() {
   const [showAdminPanel, setShowAdminPanel] = useState(false);
   const [earthquakes, setEarthquakes] = useState<EarthquakeEvent[]>(loadCachedEarthquakes);
   const [showEarthquakeLayer, setShowEarthquakeLayer] = useState(false);
+  const [verifiedOnly, setVerifiedOnly] = useState(false);
   const { t } = useI18n();
 
   // Load markers, check auth, and generate notifications on mount
@@ -108,13 +110,22 @@ function App() {
     setUser(getCurrentUser());
     requestNotificationPermission();
 
-    let markerData = loadMarkers();
-    if (markerData.length === 0) {
-      saveMarkers(SAMPLE_MARKERS);
-      markerData = SAMPLE_MARKERS;
-    }
-    setMarkers(markerData);
-    generateAutoNotifications(markerData);
+    // Try cloud first, fall back to localStorage
+    tryLoadFromCloud().then((cloud) => {
+      if (cloud && cloud.length > 0) {
+        setMarkers(cloud);
+        generateAutoNotifications(cloud);
+        return;
+      }
+      // Fallback: local
+      let markerData = loadMarkers();
+      if (markerData.length === 0) {
+        saveMarkers(SAMPLE_MARKERS);
+        markerData = SAMPLE_MARKERS;
+      }
+      setMarkers(markerData);
+      generateAutoNotifications(markerData);
+    });
 
     // Load rescued persons from localStorage
     try {
@@ -125,12 +136,20 @@ function App() {
       }
     } catch { /* ignore */ }
 
-    // Fetch earthquakes
+    // Fetch earthquakes and auto-generate verified markers
     fetchEarthquakes().then((events) => {
       if (events.length > 0) {
         setEarthquakes(events);
         cacheEarthquakes(events);
         generateEarthquakeNotifications(events);
+        const verified = generateVerifiedMarkers(events);
+        if (verified.length > 0) {
+          setMarkers((prev) => {
+            const updated = [...verified, ...prev];
+            saveMarkers(updated);
+            return updated;
+          });
+        }
       }
     });
   }, []);
@@ -162,6 +181,7 @@ function App() {
   const userCanEdit = canEdit(user);
   const userCanAdd = canAdd(user);
   const userCanDelete = canDelete(user);
+  const filteredMarkers = verifiedOnly ? markers.filter((m) => m.verified) : markers;
 
   const handleToggleFilter = useCallback((type: MarkerType) => {
     setActiveFilters((prev) =>
@@ -302,9 +322,21 @@ function App() {
         onClearFilters={handleClearFilters}
       />
 
+      <div className="verified-filter-bar">
+        <button
+          className={`verified-filter-chip ${verifiedOnly ? 'active' : ''}`}
+          onClick={() => setVerifiedOnly((prev) => !prev)}
+        >
+          ✅ Solo verificados
+          {verifiedOnly && (
+            <span className="verified-filter-count">{markers.filter((m) => m.verified).length}</span>
+          )}
+        </button>
+      </div>
+
       <div className="app-body">
         <Sidebar
-          markers={markers}
+          markers={filteredMarkers}
           selectedId={selectedId}
           onSelect={handleSelectMarker}
           onDelete={handleDeleteMarker}
@@ -320,7 +352,7 @@ function App() {
 
         <div className="map-container">
           <GoogleMap
-            markers={markers}
+            markers={filteredMarkers}
             activeFilters={activeFilters}
             selectedId={selectedId}
             onMarkerClick={handleSelectMarker}
