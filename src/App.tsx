@@ -11,6 +11,7 @@ import LoginScreen from './components/LoginScreen';
 import AdminPanel from './components/AdminPanel';
 import RescuerModePanel from './components/RescuerModePanel';
 import RescuedExportPanel from './components/RescuedExportPanel';
+import OnboardingGuide from './components/OnboardingGuide';
 import { loadMarkers, saveMarkers, addMarker, updateMarker, deleteMarker } from './utils/storage';
 import { getCurrentUser, logout, canEdit, canAdd, canDelete, type User } from './utils/auth';
 import { importFromJSON, exportToJSON, exportToCSV, exportRescuedJSON, exportRescuedCSV } from './utils/export';
@@ -398,6 +399,8 @@ function App() {
         {showAdminPanel && userCanEdit && (
           <AdminPanel onClose={() => setShowAdminPanel(false)} />
         )}
+
+        <OnboardingGuide />
       </div>
     </div>
   );
