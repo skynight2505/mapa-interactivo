@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Guía - Mapa Interactivo de Emergencia</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --surface: #1e293b;
+      --border: #334155;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+      --accent: #3b82f6;
+      --danger: #ef4444;
+      --warning: #f59e0b;
+      --success: #22c55e;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      padding: 0 0 48px;
+    }
+    .header {
+      background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+      border-bottom: 1px solid var(--border);
+      padding: 24px 32px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      backdrop-filter: blur(12px);
+    }
+    .header-logo {
+      width: 48px; height: 48px; border-radius: 12px;
+      background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 24px; flex-shrink: 0;
+    }
+    .header h1 { font-size: 20px; font-weight: 700; }
+    .header .sub { font-size: 13px; color: var(--muted); }
+    .back-btn {
+      margin-left: auto;
+      padding: 10px 20px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text);
+      font-size: 13px; font-weight: 600;
+      cursor: pointer; text-decoration: none;
+      transition: all 0.2s; font-family: inherit;
+    }
+    .back-btn:hover { background: #334155; border-color: #475569; }
+
+    .container { max-width: 900px; margin: 0 auto; padding: 32px 24px; }
+
+    .toc {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px 28px;
+      margin-bottom: 40px;
+    }
+    .toc h2 { font-size: 16px; margin-bottom: 16px; color: var(--accent); }
+    .toc a {
+      display: block;
+      padding: 8px 0;
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 13px; font-weight: 500;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+      transition: color 0.15s;
+    }
+    .toc a:hover { color: var(--accent); }
+    .toc a:last-child { border-bottom: none; }
+
+    section {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 28px 32px;
+      margin-bottom: 24px;
+    }
+    section h2 {
+      font-size: 18px; font-weight: 700;
+      margin-bottom: 16px;
+      display: flex; align-items: center; gap: 10px;
+    }
+    section h3 {
+      font-size: 14px; font-weight: 700;
+      margin: 20px 0 8px;
+      color: #e2e8f0;
+    }
+    section p { font-size: 14px; color: var(--muted); margin-bottom: 12px; }
+    section ul, section ol { padding-left: 20px; margin-bottom: 12px; }
+    section li { font-size: 14px; color: var(--muted); margin-bottom: 6px; }
+    section li strong { color: #e2e8f0; }
+
+    .tag {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 3px 10px; border-radius: 6px;
+      font-size: 11px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.3px;
+    }
+    .tag-red { background: rgba(239,68,68,0.15); color: #f87171; }
+    .tag-blue { background: rgba(59,130,246,0.15); color: #60a5fa; }
+    .tag-yellow { background: rgba(245,158,11,0.15); color: #fbbf24; }
+    .tag-green { background: rgba(34,197,94,0.15); color: #4ade80; }
+
+    .step-list { counter-reset: step; }
+    .step-list li {
+      counter-increment: step;
+      position: relative;
+      padding-left: 36px;
+      list-style: none;
+    }
+    .step-list li::before {
+      content: counter(step);
+      position: absolute; left: 0; top: 0;
+      width: 24px; height: 24px; border-radius: 50%;
+      background: var(--accent); color: #fff;
+      font-size: 12px; font-weight: 700;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .card-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin: 16px 0;
+    }
+    .card-grid .card {
+      padding: 16px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.06);
+      background: rgba(255,255,255,0.02);
+    }
+    .card-grid .card .icon { font-size: 28px; margin-bottom: 8px; }
+    .card-grid .card .name { font-size: 13px; font-weight: 700; color: var(--text); }
+    .card-grid .card .desc { font-size: 12px; color: var(--muted); margin-top: 4px; }
+
+    @media (max-width: 640px) {
+      .header { padding: 16px; flex-wrap: wrap; }
+      .header h1 { font-size: 16px; }
+      .container { padding: 16px; }
+      section { padding: 20px; }
+      .card-grid { grid-template-columns: 1fr; }
+    }
+    hr { border: none; border-top: 1px solid var(--border); margin: 20px 0; }
+    .note {
+      padding: 12px 16px;
+      border-radius: 10px;
+      background: rgba(59,130,246,0.08);
+      border: 1px solid rgba(59,130,246,0.2);
+      font-size: 13px; color: #93c5fd; margin: 12px 0;
+    }
+    .note strong { color: #60a5fa; }
+    kbd {
+      display: inline-block; padding: 2px 8px;
+      border-radius: 4px; background: #0f172a;
+      border: 1px solid var(--border);
+      font-size: 12px; font-family: inherit; color: var(--text);
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="header-logo">🆘</div>
+    <div>
+      <h1>Guía del Mapa Interactivo de Emergencia</h1>
+      <div class="sub">Instrucciones completas para usar todas las funciones</div>
+    </div>
+    <a class="back-btn" href="/">← Volver al mapa</a>
+  </div>
+
+  <div class="container">
+
+    <!-- Índice -->
+    <div class="toc">
+      <h2>📑 Contenido</h2>
+      <a href="#intro">1. Introducción</a>
+      <a href="#interfaz">2. Interfaz general</a>
+      <a href="#marcadores">3. Tipos de marcadores</a>
+      <a href="#filtros">4. Filtros y búsqueda</a>
+      <a href="#edicion">5. Modo edición — agregar/editar/eliminar marcadores</a>
+      <a href="#notificaciones">6. Notificaciones</a>
+      <a href="#terremotos">7. Terremotos en tiempo real</a>
+      <a href="#rescate">8. Modo rescatista</a>
+      <a href="#admin">9. Panel de administración</a>
+      <a href="#exportar">10. Exportar e importar datos</a>
+      <a href="#cuenta">11. Cuenta e inicio de sesión</a>
+      <a href="#atajos">12. Atajos y consejos</a>
+    </div>
+
+    <!-- 1. Introducción -->
+    <section id="intro">
+      <h2>1. Introducción</h2>
+      <p>El <strong>Mapa Interactivo de Emergencia</strong> es una plataforma colaborativa diseñada para coordinar ayuda durante emergencias y desastres. Permite a los usuarios reportar situaciones en tiempo real, visualizar terremotos activos, gestionar rescates y compartir información crítica.</p>
+      <p>La aplicación se actualiza automáticamente y funciona en dispositivos móviles y de escritorio.</p>
+    </section>
+
+    <!-- 2. Interfaz -->
+    <section id="interfaz">
+      <h2>2. Interfaz general</h2>
+      <p>La pantalla principal se divide en estas secciones:</p>
+      <ol class="step-list">
+        <li><strong>Header (barra superior):</strong> muestra el logo, el título, el reloj, el selector de idioma, el botón de notificaciones, el modo rescatista, el modo edición, inicio de sesión y panel de admin.</li>
+        <li><strong>Filter bar (barra de filtros):</strong> debajo del header. Contiene chips para filtrar marcadores por tipo y un botón para limpiar filtros.</li>
+        <li><strong>Sidebar (barra lateral):</strong> lista de todos los marcadores con buscador. Se puede colapsar con el botón <kbd>◀</kbd> en el borde.</li>
+        <li><strong>Mapa (centro):</strong> mapa Leaflet con todos los marcadores, capa de terremotos y capa de rescatados. Tiene controles de zoom y botones de capa en la esquina superior derecha.</li>
+        <li><strong>Paneles flotantes:</strong> MarkerPopup (detalle al hacer clic en un marcador), RescuerModePanel (modo rescatista), paneles modales (login, admin, import).</li>
+      </ol>
+      <div class="note">
+        <strong>💡 Consejo:</strong> Puedes colapsar la barra lateral para tener más espacio en el mapa. En móvil se oculta automáticamente.
+      </div>
+    </section>
+
+    <!-- 3. Marcadores -->
+    <section id="marcadores">
+      <h2>3. Tipos de marcadores</h2>
+      <p>Cada marcador en el mapa representa una situación diferente. Al hacer clic se abre un panel con detalles, fotos, contactos y enlaces a grupos de ayuda.</p>
+
+      <div class="card-grid">
+        <div class="card">
+          <div class="icon">🏚️</div>
+          <div class="name">Edificio derrumbado</div>
+          <div class="desc">Estructura colapsada total o parcialmente. Incluye nivel de daño y necesidades.</div>
+        </div>
+        <div class="card">
+          <div class="icon">🚧</div>
+          <div class="name">Vía obstruida</div>
+          <div class="desc">Calle o carretera bloqueada por escombros, derrumbes o inundaciones.</div>
+        </div>
+        <div class="card">
+          <div class="icon">🏠</div>
+          <div class="name">Zona refugio</div>
+          <div class="desc">Albergue o refugio temporal disponible para damnificados.</div>
+        </div>
+        <div class="card">
+          <div class="icon">⚠️</div>
+          <div class="name">Zona de riesgo</div>
+          <div class="desc">Área peligrosa por deslizamientos, inundaciones, gas, etc.</div>
+        </div>
+        <div class="card">
+          <div class="icon">👥</div>
+          <div class="name">Personas atrapadas</div>
+          <div class="desc">Ubicación con personas que necesitan rescate urgente.</div>
+        </div>
+        <div class="card">
+          <div class="icon">📦</div>
+          <div class="name">Suministros</div>
+          <div class="desc">Punto de recolección o distribución de agua, comida, medicinas.</div>
+        </div>
+        <div class="card">
+          <div class="icon">🏥</div>
+          <div class="name">Centro de salud</div>
+          <div class="desc">Hospital, clínica o puesto médico operativo.</div>
+        </div>
+        <div class="card">
+          <div class="icon">🔌</div>
+          <div class="name">Servicio dañado</div>
+          <div class="desc">Corte de agua, luz, gas o telecomunicaciones.</div>
+        </div>
+      </div>
+
+      <h3>Colores de severidad</h3>
+      <p>
+        <span class="tag tag-red">Crítica</span> Emergencia inmediata — requiere acción urgente.<br>
+        <span class="tag tag-yellow">Alta</span> Situación seria — atención prioritaria.<br>
+        <span class="tag tag-blue">Media</span> Requiere monitoreo.<br>
+        <span class="tag tag-green">Baja</span> Situación controlada o informativa.
+      </p>
+    </section>
+
+    <!-- 4. Filtros -->
+    <section id="filtros">
+      <h2>4. Filtros y búsqueda</h2>
+      <p><strong>Filtros por tipo:</strong> En la barra de filtros (debajo del header), haz clic en los chips para mostrar solo ciertos tipos de marcadores. Los chips se iluminan cuando están activos.</p>
+      <p><strong>Búsqueda:</strong> En la barra lateral hay un campo de búsqueda. Escribe el nombre de un marcador para filtrar la lista instantáneamente.</p>
+      <p><strong>Capas del mapa:</strong> En la esquina superior derecha del mapa hay dos botones:</p>
+      <ul>
+        <li><strong>🏥 Rescatados ON/OFF</strong> — muestra/oculta las personas rescatadas registradas</li>
+        <li><strong>🌍 Terremotos ON/OFF</strong> — muestra/oculta los sismos activos desde USGS</li>
+      </ul>
+    </section>
+
+    <!-- 5. Modo edición -->
+    <section id="edicion">
+      <h2>5. Modo edición</h2>
+      <p>Para agregar, editar o eliminar marcadores, activa el <strong>Modo Edición</strong> desde el botón en el header (ícono de engranaje).</p>
+
+      <h3>Agregar un marcador</h3>
+      <ol class="step-list">
+        <li>Activa el modo edición.</li>
+        <li>Haz clic en <strong>"+ Agregar marcador"</strong> en la barra lateral o en el botón <strong>"Agregar marcador"</strong> del panel de filtros.</li>
+        <li>Haz clic en el mapa en la ubicación deseada (aparecerá un marcador temporal).</li>
+        <li>Completa el formulario: nombre, tipo, severidad, descripción, imágenes (opcional), contactos, grupos de WhatsApp/Telegram, suministros necesarios.</li>
+        <li>Presiona <strong>"Guardar"</strong>.</li>
+      </ol>
+
+      <h3>Editar un marcador</h3>
+      <ol class="step-list">
+        <li>Activa el modo edición.</li>
+        <li>Haz clic en el marcador en el mapa o en la barra lateral.</li>
+        <li>En el panel de detalle, haz clic en <strong>"Editar"</strong>.</li>
+        <li>Modifica los campos y presiona <strong>"Guardar"</strong>.</li>
+      </ol>
+
+      <h3>Eliminar un marcador</h3>
+      <ol class="step-list">
+        <li>Activa el modo edición.</li>
+        <li>Haz clic en el marcador.</li>
+        <li>En el panel de detalle, haz clic en <strong>"Eliminar"</strong>.</li>
+        <li>Confirma en el diálogo.</li>
+      </ol>
+
+      <h3>Grupos y enlaces en marcadores</h3>
+      <p>Cada marcador puede tener enlaces a grupos de WhatsApp, canales de Telegram o páginas de información. Estos son visibles para todos los usuarios. Los administradores pueden agregar y eliminar enlaces desde el panel de detalle del marcador en modo edición.</p>
+
+      <div class="note">
+        <strong>🔒 Permisos:</strong> Para editar necesitas una cuenta. Los roles son: <strong>admin</strong> (edita y elimina todo), <strong>editor</strong> (agrega y edita lo propio) y <strong>viewer</strong> (solo lectura).
+      </div>
+    </section>
+
+    <!-- 6. Notificaciones -->
+    <section id="notificaciones">
+      <h2>6. Notificaciones</h2>
+      <p>El sistema genera notificaciones automáticas para mantenerte informado:</p>
+      <ul>
+        <li><strong>🚨 Emergencias:</strong> marcadores críticos (personas atrapadas, edificios derrumbados con severidad crítica)</li>
+        <li><strong>🌊 Terremotos:</strong> sismos M6+ (alerta roja), M5+ (warning naranja), M4.5+ (info amarilla) — datos en vivo desde USGS</li>
+        <li><strong>⚠️ Zonas de riesgo:</strong> cuando se marca una zona con severidad alta o crítica</li>
+        <li><strong>🏠 Refugios:</strong> cuando se agrega un nuevo refugio</li>
+        <li><strong>🚧 Vías obstruidas:</strong> reportes de bloqueos</li>
+      </ul>
+      <p>Las notificaciones se muestran en el <strong>panel de campana</strong> en el header. El número rojo indica cuántas no leídas tienes. Puedes marcar todas como leídas o eliminar individualmente. También se envían notificaciones del navegador si das permiso.</p>
+    </section>
+
+    <!-- 7. Terremotos -->
+    <section id="terremotos">
+      <h2>7. Terremotos en tiempo real</h2>
+      <p>La aplicación obtiene automáticamente los terremotos de magnitud <strong>4.5+</strong> en todo el mundo desde la red <strong>USGS</strong> (Servicio Geológico de EE.UU.).</p>
+      <ul>
+        <li>Los datos se actualizan al cargar la página y se cachean por 10 minutos.</li>
+        <li>Activa la capa con el botón <strong>"🌍 Terremotos ON/OFF"</strong> en la esquina superior derecha del mapa.</li>
+        <li>Cada terremoto muestra: magnitud, ubicación, profundidad y fecha/hora.</li>
+        <li>Los terremotos de M6+ tienen un <strong>círculo de onda expansiva</strong> y pulso rojo.</li>
+        <li>Los M5+ se muestran en naranja, M4.5+ en amarillo.</li>
+        <li>Al hacer clic en un terremoto se abre un tooltip con todos los datos.</li>
+      </ul>
+    </section>
+
+    <!-- 8. Modo rescatista -->
+    <section id="rescate">
+      <h2>8. Modo rescatista</h2>
+      <p>El modo rescatista es una herramienta avanzada para equipos de respuesta en terreno. Se activa desde el botón rojo <strong>"Rescatista"</strong> en el header.</p>
+
+      <h3>Registrar persona rescatada</h3>
+      <ol class="step-list">
+        <li>Activa modo rescatista.</li>
+        <li>Haz clic en <strong>"Registrar Rescatado"</strong>.</li>
+        <li>Completa: nombre, ubicación (clic en el mapa), edad, género, condición (bueno/herido/crítico), tipo de terreno.</li>
+        <li>Guarda. Aparecerá en el mapa con un ícono 🏥.</li>
+      </ol>
+
+      <h3>Pestañas del panel rescatista</h3>
+      <ul>
+        <li><strong>Suministros:</strong> gestiona agua, comida, medicinas, mantas, etc. con estado: necesario/disponible/entregado.</li>
+        <li><strong>Rescatados:</strong> lista con búsqueda y filtros de todas las personas registradas.</li>
+        <li><strong>Grupos:</strong> enlaces a grupos de WhatsApp, canales de Telegram y páginas de información clasificados por zona.</li>
+        <li><strong>Prioridad:</strong> tareas organizadas por urgencia para coordinar el equipo.</li>
+      </ul>
+
+      <h3>Capa de rescatados en el mapa</h3>
+      <p>Actívala con el botón <strong>"🏥 Rescatados ON/OFF"</strong>. Cuando hay más de 10 personas en un área, se agrupan en clústeres con el número total. Al hacer clic en un clúster, el mapa se acerca para mostrar los detalles individuales.</p>
+    </section>
+
+    <!-- 9. Admin -->
+    <section id="admin">
+      <h2>9. Panel de administración</h2>
+      <p>Solo visible para usuarios con rol <strong>admin</strong>. Se accede desde el botón <strong>"Admin"</strong> en el header.</p>
+      <ul>
+        <li><strong>Gestión de usuarios:</strong> ver, agregar y eliminar usuarios. Cada usuario tiene nombre, contraseña y rol (admin/editor/viewer).</li>
+        <li><strong>Estadísticas:</strong> conteo de marcadores por tipo y severidad.</li>
+        <li><strong>Estado del sitio:</strong> dashboard que muestra la situación actual con indicadores de severidad y progreso de suministros.</li>
+        <li><strong>Categorías:</strong> vista de todas las categorías disponibles en el sistema.</li>
+      </ul>
+    </section>
+
+    <!-- 10. Exportar -->
+    <section id="exportar">
+      <h2>10. Exportar e importar datos</h2>
+      <p>Desde el menú <strong>"Datos"</strong> en el header (ícono de cilindro) puedes:</p>
+      <ul>
+        <li><strong>Exportar JSON:</strong> descarga todos los marcadores en formato JSON para respaldo o análisis.</li>
+        <li><strong>Exportar CSV:</strong> descarga los marcadores como hoja de cálculo (compatible con Excel/Google Sheets).</li>
+        <li><strong>Importar JSON:</strong> carga un archivo JSON previamente exportado para restaurar marcadores.</li>
+        <li><strong>Personas rescatadas:</strong> exporta el registro de rescatados en JSON o CSV.</li>
+      </ul>
+      <div class="note">
+        <strong>⚠️</strong> La importación reemplaza todos los marcadores actuales. Se recomienda exportar antes de importar.
+      </div>
+    </section>
+
+    <!-- 11. Cuenta -->
+    <section id="cuenta">
+      <h2>11. Cuenta e inicio de sesión</h2>
+      <p>Haz clic en <strong>"Iniciar sesión"</strong> en el header para acceder con tu usuario y contraseña.</p>
+      <ul>
+        <li><strong>Usuario por defecto:</strong> admin / admin (se recomienda cambiar la contraseña).</li>
+        <li><strong>Roles:</strong> admin (control total), editor (agregar/editar), viewer (solo lectura).</li>
+        <li>Al iniciar sesión, el header mostrará tu nombre y rol. Puedes cerrar sesión con el botón <strong>"Salir"</strong>.</li>
+      </ul>
+    </section>
+
+    <!-- 12. Atajos -->
+    <section id="atajos">
+      <h2>12. Atajos y consejos</h2>
+      <ul>
+        <li><strong>Idioma:</strong> usa el selector de idioma en el header para cambiar entre español, inglés, portugués, francés, italiano, alemán y neerlandés.</li>
+        <li><strong>Reloj:</strong> el header muestra la hora y fecha actual en formato Venezuela.</li>
+        <li><strong>Colapsar sidebar:</strong> haz clic en <kbd>◀</kbd> en el borde de la barra lateral para dar más espacio al mapa.</li>
+        <li><strong>Zoom:</strong> usa la rueda del ratón o los controles <kbd>+</kbd> <kbd>−</kbd> en el mapa. En móvil, pellizca para hacer zoom.</li>
+        <li><strong>Tooltips:</strong> al pasar el mouse sobre un marcador verás el nombre. En móvil, toca y mantén presionado.</li>
+        <li><strong>Modo oscuro:</strong> toda la interfaz usa tema oscuro para facilitar la lectura en condiciones de poca luz.</li>
+        <li><strong>Responsive:</strong> la aplicación se adapta a cualquier tamaño de pantalla. En móvil la barra lateral se superpone al mapa.</li>
+      </ul>
+      <hr>
+      <p style="text-align:center; color: var(--muted); font-size: 13px;">
+        Mapa Interactivo de Emergencia v1.0 — Datos de terremotos por <a href="https://earthquake.usgs.gov" target="_blank" style="color: var(--accent);">USGS</a><br>
+        <a href="/" style="color: var(--accent);">← Volver al mapa</a>
+      </p>
+    </section>
+  </div>
+</body>
+</html>
