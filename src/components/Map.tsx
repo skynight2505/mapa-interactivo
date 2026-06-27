@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import type { MapMarker, MarkerType, RescuedPerson } from '../types';
@@ -20,12 +20,10 @@ interface GoogleMapProps {
   onMapClick?: (lat: number, lng: number) => void;
   rescuedPersons?: RescuedPerson[];
   showRescuedLayer?: boolean;
-  onToggleRescuedLayer?: () => void;
   highlightedRescuedId?: string | null;
   onHighlightRescuedClear?: () => void;
   earthquakes?: EarthquakeEvent[];
   showEarthquakeLayer?: boolean;
-  onToggleEarthquakeLayer?: () => void;
 }
 
 function clusterPersons(persons: RescuedPerson[], minDistance = 0.003): Cluster[] {
@@ -78,12 +76,12 @@ function rescuedHtml(condition: string): string {
   return `<div style="width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:${color};border:2px solid #fff;font-size:14px;box-shadow:0 2px 6px rgba(0,0,0,0.3)">${icon}</div>`;
 }
 
-const GoogleMap: React.FC<GoogleMapProps> = ({
+export default function GoogleMap({
   markers, activeFilters, selectedId, onMarkerClick, onMapClick,
-  rescuedPersons = [], showRescuedLayer = false, onToggleRescuedLayer,
+  rescuedPersons = [], showRescuedLayer = false,
   highlightedRescuedId, onHighlightRescuedClear,
-  earthquakes = [], showEarthquakeLayer = false, onToggleEarthquakeLayer,
-}) => {
+  earthquakes = [], showEarthquakeLayer = false,
+}: GoogleMapProps) {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
   const markersLayerRef = useRef<L.LayerGroup>(L.layerGroup());
@@ -278,7 +276,7 @@ const GoogleMap: React.FC<GoogleMapProps> = ({
   }, [showEarthquakeLayer, earthquakes]);
 
   return (
-    <div style={{ position: 'absolute', inset: 0 }}>
+    <div style={{ position: 'absolute', inset: 0, zIndex: 0 }}>
       <div ref={mapRef} style={{ width: '100%', height: '100%' }} />
       {!mapReady && (
         <div className="map-loading">
@@ -286,30 +284,6 @@ const GoogleMap: React.FC<GoogleMapProps> = ({
           <span>Cargando mapa...</span>
         </div>
       )}
-      <div className="map-layer-toggle">
-        {onToggleRescuedLayer && (
-          <button
-            className={`map-layer-btn ${showRescuedLayer ? 'active' : ''}`}
-            onClick={onToggleRescuedLayer}
-            title={showRescuedLayer ? 'Ocultar personas rescatadas' : 'Mostrar personas rescatadas'}
-          >
-            🏥 Rescatados {showRescuedLayer ? 'ON' : 'OFF'}
-            {rescuedPersons.length > 0 && <span className="map-layer-count">{rescuedPersons.length}</span>}
-          </button>
-        )}
-        {onToggleEarthquakeLayer && (
-          <button
-            className={`map-layer-btn ${showEarthquakeLayer ? 'active' : ''}`}
-            onClick={onToggleEarthquakeLayer}
-            title={showEarthquakeLayer ? 'Ocultar terremotos' : 'Mostrar terremotos'}
-          >
-            🌍 Terremotos {showEarthquakeLayer ? 'ON' : 'OFF'}
-            {earthquakes.length > 0 && <span className="map-layer-count">{earthquakes.length}</span>}
-          </button>
-        )}
-      </div>
     </div>
   );
-};
-
-export default GoogleMap;
+}

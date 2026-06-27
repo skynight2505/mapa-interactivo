@@ -692,51 +692,53 @@ html, body, #root { height: 100%; font-family: 'Inter', system-ui, sans-serif; }
   display: flex;
   flex-direction: column;
   gap: 6px;
-  z-index: 1001;
+  z-index: 9999;
 }
 
 .map-layer-btn {
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 8px 12px;
+  padding: 8px 14px;
   border-radius: 8px;
-  border: 1px solid #334155;
+  border: 1px solid #475569;
   background: #1e293b;
-  color: #94a3b8;
-  font-size: 11px;
+  color: #e2e8f0;
+  font-size: 12px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.15s;
   font-family: inherit;
   white-space: nowrap;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.5);
 }
 
 .map-layer-btn:hover {
   background: #334155;
-  color: #e2e8f0;
-  border-color: #475569;
+  color: #f8fafc;
+  border-color: #60a5fa;
+  box-shadow: 0 4px 20px rgba(59,130,246,0.2);
 }
 
 .map-layer-btn.active {
-  background: rgba(59, 130, 246, 0.15);
+  background: rgba(59, 130, 246, 0.2);
   border-color: #3b82f6;
-  color: #60a5fa;
+  color: #93c5fd;
+  box-shadow: 0 4px 20px rgba(59,130,246,0.3);
 }
 
 .map-layer-count {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 18px;
-  height: 18px;
-  border-radius: 9px;
-  background: rgba(59, 130, 246, 0.2);
-  color: #60a5fa;
-  font-size: 10px;
+  min-width: 20px;
+  height: 20px;
+  border-radius: 10px;
+  background: rgba(59, 130, 246, 0.25);
+  color: #93c5fd;
+  font-size: 11px;
   font-weight: 700;
-  padding: 0 5px;
+  padding: 0 6px;
 }
 
 /* ===== LEAFLET OVERRIDES (dark theme) ===== */

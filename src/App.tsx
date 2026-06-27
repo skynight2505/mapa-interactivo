@@ -327,13 +327,30 @@ function App() {
             onMapClick={handleMapClick}
             rescuedPersons={rescuedPersons}
             showRescuedLayer={showRescuedLayer}
-            onToggleRescuedLayer={() => setShowRescuedLayer(prev => !prev)}
             highlightedRescuedId={highlightedRescuedId}
             onHighlightRescuedClear={() => setHighlightedRescuedId(null)}
             earthquakes={earthquakes}
             showEarthquakeLayer={showEarthquakeLayer}
-            onToggleEarthquakeLayer={() => setShowEarthquakeLayer(prev => !prev)}
           />
+
+          <div className="map-layer-toggle">
+            <button
+              className={`map-layer-btn ${showRescuedLayer ? 'active' : ''}`}
+              onClick={() => setShowRescuedLayer(prev => !prev)}
+              title={showRescuedLayer ? 'Ocultar personas rescatadas' : 'Mostrar personas rescatadas'}
+            >
+              🏥 Rescatados {showRescuedLayer ? 'ON' : 'OFF'}
+              {rescuedPersons.length > 0 && <span className="map-layer-count">{rescuedPersons.length}</span>}
+            </button>
+            <button
+              className={`map-layer-btn ${showEarthquakeLayer ? 'active' : ''}`}
+              onClick={() => setShowEarthquakeLayer(prev => !prev)}
+              title={showEarthquakeLayer ? 'Ocultar terremotos' : 'Mostrar terremotos'}
+            >
+              🌍 Terremotos {showEarthquakeLayer ? 'ON' : 'OFF'}
+              {earthquakes.length > 0 && <span className="map-layer-count">{earthquakes.length}</span>}
+            </button>
+          </div>
 
           {isPlacingMarker && (
             <div className="click-marker-prompt">
