@@ -1,19 +1,75 @@
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 import { CATEGORIES } from '../utils/categories';
 import { SEVERITY_COLORS } from '../utils/categories';
-import type { MapMarker } from '../types';
-import { TERRAIN_LABELS } from '../types';
+import type { MapMarker, RescueLink, RescueLinkCategory } from '../types';
+import { TERRAIN_LABELS, RESCUE_LINK_CATEGORIES } from '../types';
 import SiteStatusDashboard from './SiteStatusDashboard';
 import { useI18n } from '../utils/i18n';
+import { loadZoneLinks, saveAllLinks, loadAllLinks } from '../utils/links';
 
 interface MarkerPopupProps {
   marker: MapMarker;
   onClose: () => void;
+  userCanEdit?: boolean;
 }
 
-const MarkerPopup: React.FC<MarkerPopupProps> = ({ marker, onClose }) => {
+const CATEGORY_ORDER: RescueLinkCategory[] = ['whatsapp', 'canal_informativo', 'pagina'];
+
+const MarkerPopup: React.FC<MarkerPopupProps> = ({ marker, onClose, userCanEdit }) => {
   const cat = CATEGORIES[marker.type];
   const { t } = useI18n();
+  const [zoneLinks, setZoneLinks] = useState<RescueLink[]>(() => loadZoneLinks(marker.id));
+  const [showLinkForm, setShowLinkForm] = useState(false);
+  const [linkTitle, setLinkTitle] = useState('');
+  const [linkUrl, setLinkUrl] = useState('');
+  const [linkCategory, setLinkCategory] = useState<RescueLinkCategory>('whatsapp');
+  const [linkDesc, setLinkDesc] = useState('');
+
+  const refreshLinks = () => setZoneLinks(loadZoneLinks(marker.id));
+
+  const categorizedLinks = useMemo(() => {
+    return CATEGORY_ORDER.map((cat) => ({
+      cat,
+      config: RESCUE_LINK_CATEGORIES[cat],
+      links: zoneLinks.filter((l) => l.category === cat),
+    })).filter((g) => g.links.length > 0);
+  }, [zoneLinks]);
+
+  const handleAddLink = () => {
+    if (!linkTitle.trim() || !linkUrl.trim()) return;
+    const newLink: RescueLink = {
+      id: crypto.randomUUID(),
+      title: linkTitle.trim(),
+      url: linkUrl.trim(),
+      category: linkCategory,
+      zoneId: marker.id,
+      zoneName: marker.title,
+      description: linkDesc.trim() || undefined,
+      createdAt: new Date().toISOString(),
+    };
+    const all = loadAllLinks();
+    saveAllLinks([...all, newLink]);
+    setLinkTitle('');
+    setLinkUrl('');
+    setLinkCategory('whatsapp');
+    setLinkDesc('');
+    setShowLinkForm(false);
+    refreshLinks();
+  };
+
+  const handleDeleteLink = (id: string) => {
+    const all = loadAllLinks();
+    saveAllLinks(all.filter((l) => l.id !== id));
+    refreshLinks();
+  };
+
+  const getDomain = (urlStr: string) => {
+    try {
+      return new URL(urlStr.startsWith('http') ? urlStr : `https://${urlStr}`).hostname;
+    } catch {
+      return urlStr;
+    }
+  };
 
   return (
     <div className="detail-panel">
@@ -105,6 +161,89 @@ const MarkerPopup: React.FC<MarkerPopupProps> = ({ marker, onClose }) => {
                 </span>
               </div>
             ))
+          )}
+        </div>
+
+        {/* Enlaces de la zona (grupos WhatsApp, canales, páginas) */}
+        <div className="detail-section">
+          <div className="detail-section-title">
+            🔗 Grupos y Canales ({zoneLinks.length})
+          </div>
+          {zoneLinks.length === 0 && !showLinkForm && (
+            <p className="detail-no-data">No hay enlaces disponibles para esta zona.</p>
+          )}
+          {categorizedLinks.map(({ cat, config, links: catLinks }) => (
+            <div key={cat} style={{ marginBottom: 8 }}>
+              <div style={{ fontSize: 12, fontWeight: 700, color: config.color, marginBottom: 4 }}>
+                {config.icon} {config.label}
+              </div>
+              {catLinks.map((link) => (
+                <div key={link.id} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 8px', borderRadius: 6, background: 'rgba(255,255,255,0.03)', marginBottom: 4 }}>
+                  <a
+                    href={link.url.startsWith('http') ? link.url : `https://${link.url}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{ flex: 1, fontSize: 12, fontWeight: 600, color: '#60A5FA', textDecoration: 'none', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+                  >
+                    {link.title}
+                  </a>
+                  <span style={{ fontSize: 10, color: '#475569', flexShrink: 0 }}>{getDomain(link.url)}</span>
+                  {userCanEdit && (
+                    <button
+                      onClick={() => handleDeleteLink(link.id)}
+                      style={{ width: 20, height: 20, border: 'none', borderRadius: 4, background: 'rgba(239,68,68,0.15)', color: '#EF4444', fontSize: 10, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
+                    >
+                      ✕
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+          ))}
+          {userCanEdit && !showLinkForm && (
+            <button
+              onClick={() => setShowLinkForm(true)}
+              style={{ width: '100%', padding: '8px', border: '1px dashed #475569', borderRadius: 6, background: 'transparent', color: '#94a3b8', fontSize: 12, cursor: 'pointer', textAlign: 'center', marginTop: 4 }}
+            >
+              ➕ Agregar grupo o canal
+            </button>
+          )}
+          {showLinkForm && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, padding: 10, borderRadius: 8, background: 'rgba(255,255,255,0.03)', border: '1px solid #334155', marginTop: 4 }}>
+              <div>
+                <label style={{ fontSize: 11, color: '#94a3b8', fontWeight: 600, marginBottom: 4, display: 'block' }}>Título</label>
+                <input className="form-input" placeholder="Ej: Rescate Centro" value={linkTitle} onChange={(e) => setLinkTitle(e.target.value)} />
+              </div>
+              <div>
+                <label style={{ fontSize: 11, color: '#94a3b8', fontWeight: 600, marginBottom: 4, display: 'block' }}>Enlace (URL)</label>
+                <input className="form-input" placeholder="https://chat.whatsapp.com/..." value={linkUrl} onChange={(e) => setLinkUrl(e.target.value)} />
+              </div>
+              <div>
+                <label style={{ fontSize: 11, color: '#94a3b8', fontWeight: 600, marginBottom: 4, display: 'block' }}>Categoría</label>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 4 }}>
+                  {CATEGORY_ORDER.map((cat) => {
+                    const cfg = RESCUE_LINK_CATEGORIES[cat];
+                    return (
+                      <button
+                        key={cat}
+                        style={{ padding: '6px', borderRadius: 6, border: `1px solid ${cfg.color}`, background: linkCategory === cat ? `${cfg.color}22` : 'transparent', color: linkCategory === cat ? cfg.color : '#94a3b8', cursor: 'pointer', fontSize: 10, fontWeight: 600 }}
+                        onClick={() => setLinkCategory(cat)}
+                      >
+                        {cfg.icon} {cfg.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+              <div>
+                <label style={{ fontSize: 11, color: '#94a3b8', fontWeight: 600, marginBottom: 4, display: 'block' }}>Descripción (opcional)</label>
+                <input className="form-input" placeholder="Breve descripción" value={linkDesc} onChange={(e) => setLinkDesc(e.target.value)} />
+              </div>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <button className="btn btn-primary" style={{ flex: 1, fontSize: 12, padding: '8px' }} onClick={handleAddLink}>✅ Agregar</button>
+                <button className="btn btn-secondary" style={{ flex: 1, fontSize: 12, padding: '8px' }} onClick={() => setShowLinkForm(false)}>Cancelar</button>
+              </div>
+            </div>
           )}
         </div>
 

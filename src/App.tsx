@@ -332,7 +332,7 @@ function App() {
           )}
 
           {selectedMarker && !showForm && !isRescueMode && (
-            <MarkerPopup marker={selectedMarker} onClose={handleClosePopup} />
+            <MarkerPopup marker={selectedMarker} onClose={handleClosePopup} userCanEdit={userCanEdit} />
           )}
 
           {selectedMarker && isRescueMode && (

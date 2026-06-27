@@ -1,30 +1,17 @@
 import React, { useState } from 'react';
 import type { RescueLink, RescueLinkCategory } from '../types';
 import { RESCUE_LINK_CATEGORIES } from '../types';
+import { loadAllLinks, saveAllLinks } from '../utils/links';
 
 interface ZoneLinksManagerProps {
   zoneId: string;
   zoneName: string;
 }
 
-const STORAGE_KEY = 'rescue_links';
-
-function loadLinks(): RescueLink[] {
-  try {
-    const data = localStorage.getItem(STORAGE_KEY);
-    if (data) return JSON.parse(data);
-  } catch { /* ignore */ }
-  return [];
-}
-
-function saveLinks(links: RescueLink[]) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(links));
-}
-
 const CATEGORY_ORDER: RescueLinkCategory[] = ['whatsapp', 'canal_informativo', 'pagina'];
 
 const ZoneLinksManager: React.FC<ZoneLinksManagerProps> = ({ zoneId, zoneName }) => {
-  const [links, setLinks] = useState<RescueLink[]>(loadLinks);
+  const [links, setLinks] = useState<RescueLink[]>(loadAllLinks);
   const [showForm, setShowForm] = useState(false);
   const [title, setTitle] = useState('');
   const [url, setUrl] = useState('');
@@ -35,7 +22,7 @@ const ZoneLinksManager: React.FC<ZoneLinksManagerProps> = ({ zoneId, zoneName })
 
   const updateLinks = (newLinks: RescueLink[]) => {
     setLinks(newLinks);
-    saveLinks(newLinks);
+    saveAllLinks(newLinks);
   };
 
   const handleAdd = () => {
