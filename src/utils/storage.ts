@@ -23,11 +23,18 @@ function saveLocal(markers: MapMarker[]): void {
 
 // ===== CLOUD SYNC =====
 let syncTimer: ReturnType<typeof setTimeout> | null = null;
+let _cloudOk = false;
+let _kvBound = false;
+
+export function isCloudConnected(): boolean { return _cloudOk; }
+export function isKVBound(): boolean { return _kvBound; }
 
 function scheduleSync(markers: MapMarker[]) {
   if (syncTimer) clearTimeout(syncTimer);
-  syncTimer = setTimeout(() => {
-    saveCloudMarkers(markers);
+  syncTimer = setTimeout(async () => {
+    const result = await saveCloudMarkers(markers);
+    _cloudOk = result.ok;
+    _kvBound = result.kv;
   }, 2000);
 }
 
@@ -69,6 +76,7 @@ export async function tryLoadFromCloud(): Promise<MapMarker[] | null> {
     const cloud = await fetchCloudMarkers();
     if (cloud && cloud.length > 0) {
       saveLocal(cloud);
+      _cloudOk = true;
       return cloud;
     }
   } catch {

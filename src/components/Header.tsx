@@ -3,6 +3,23 @@ import type { User } from '../utils/auth';
 import NotificationPanel from './NotificationPanel';
 import LanguageSelector from './LanguageSelector';
 import { useI18n } from '../utils/i18n';
+import { isCloudConnected, isKVBound } from '../utils/storage';
+
+function SyncIndicator() {
+  const [ok, setOk] = useState(false);
+  const [kv, setKv] = useState(false);
+  useEffect(() => {
+    const id = setInterval(() => { setOk(isCloudConnected()); setKv(isKVBound()); }, 3000);
+    return () => clearInterval(id);
+  }, []);
+  if (!ok) return null;
+  return (
+    <span className="sync-indicator" title={kv ? 'Sincronizado con la nube (KV)' : 'Solo almacenamiento local'}>
+      <span className={`sync-dot ${kv ? 'kv' : 'local'}`} />
+      {kv ? '☁️' : '💾'}
+    </span>
+  );
+}
 
 function Clock() {
   const [now, setNow] = useState(new Date());
@@ -73,6 +90,7 @@ const Header: React.FC<HeaderProps> = ({
           <span className="header-subtitle">{markerCount} {t('app.subtitle')}</span>
         </div>
         <Clock />
+        <SyncIndicator />
       </div>
 
       <div className="header-right">
