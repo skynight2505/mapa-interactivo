@@ -15,6 +15,7 @@ import { loadMarkers, saveMarkers, addMarker, updateMarker, deleteMarker } from 
 import { getCurrentUser, logout, canEdit, canAdd, canDelete, type User } from './utils/auth';
 import { importFromJSON, exportToJSON, exportToCSV, exportRescuedJSON, exportRescuedCSV } from './utils/export';
 import { generateAutoNotifications, requestNotificationPermission } from './utils/notifications';
+import { fetchEarthquakes, cacheEarthquakes, loadCachedEarthquakes, generateEarthquakeNotifications, type EarthquakeEvent } from './utils/earthquake';
 import { SAMPLE_MARKERS } from './data/sampleData';
 import type { MapMarker, MarkerType, RescuedPerson } from './types';
 
@@ -97,6 +98,8 @@ function App() {
   const [showRescuedLayer, setShowRescuedLayer] = useState(false);
   const [highlightedRescuedId, setHighlightedRescuedId] = useState<string | null>(null);
   const [showAdminPanel, setShowAdminPanel] = useState(false);
+  const [earthquakes, setEarthquakes] = useState<EarthquakeEvent[]>(loadCachedEarthquakes);
+  const [showEarthquakeLayer, setShowEarthquakeLayer] = useState(false);
   const { t } = useI18n();
 
   // Load markers, check auth, and generate notifications on mount
@@ -120,6 +123,15 @@ function App() {
         if (rescuedData.length > 0) setRescuedPersons(rescuedData);
       }
     } catch { /* ignore */ }
+
+    // Fetch earthquakes
+    fetchEarthquakes().then((events) => {
+      if (events.length > 0) {
+        setEarthquakes(events);
+        cacheEarthquakes(events);
+        generateEarthquakeNotifications(events);
+      }
+    });
   }, []);
 
   const handleUpdateMarker = useCallback((id: string, updates: Partial<MapMarker>) => {
@@ -317,6 +329,9 @@ function App() {
             onToggleRescuedLayer={() => setShowRescuedLayer(prev => !prev)}
             highlightedRescuedId={highlightedRescuedId}
             onHighlightRescuedClear={() => setHighlightedRescuedId(null)}
+            earthquakes={earthquakes}
+            showEarthquakeLayer={showEarthquakeLayer}
+            onToggleEarthquakeLayer={() => setShowEarthquakeLayer(prev => !prev)}
           />
 
           {isPlacingMarker && (

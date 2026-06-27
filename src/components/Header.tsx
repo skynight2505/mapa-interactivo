@@ -4,6 +4,22 @@ import NotificationPanel from './NotificationPanel';
 import LanguageSelector from './LanguageSelector';
 import { useI18n } from '../utils/i18n';
 
+function Clock() {
+  const [now, setNow] = useState(new Date());
+  useEffect(() => {
+    const id = setInterval(() => setNow(new Date()), 1000);
+    return () => clearInterval(id);
+  }, []);
+  const dateStr = now.toLocaleDateString('es-VE', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+  const timeStr = now.toLocaleTimeString('es-VE', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  return (
+    <div className="header-clock">
+      <span className="header-clock-time">{timeStr}</span>
+      <span className="header-clock-date">{dateStr}</span>
+    </div>
+  );
+}
+
 interface HeaderProps {
   isEditMode: boolean;
   onToggleMode: () => void;
@@ -56,6 +72,7 @@ const Header: React.FC<HeaderProps> = ({
           <h1 className="header-title">{t('app.title')}</h1>
           <span className="header-subtitle">{markerCount} {t('app.subtitle')}</span>
         </div>
+        <Clock />
       </div>
 
       <div className="header-right">

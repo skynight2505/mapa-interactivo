@@ -3,6 +3,7 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import type { MapMarker, MarkerType, RescuedPerson } from '../types';
 import { CATEGORIES } from '../utils/categories';
+import { getEarthquakeColor, getEarthquakeIcon, type EarthquakeEvent } from '../utils/earthquake';
 
 interface Cluster {
   lat: number;
@@ -22,6 +23,9 @@ interface GoogleMapProps {
   onToggleRescuedLayer?: () => void;
   highlightedRescuedId?: string | null;
   onHighlightRescuedClear?: () => void;
+  earthquakes?: EarthquakeEvent[];
+  showEarthquakeLayer?: boolean;
+  onToggleEarthquakeLayer?: () => void;
 }
 
 function clusterPersons(persons: RescuedPerson[], minDistance = 0.003): Cluster[] {
@@ -78,11 +82,13 @@ const GoogleMap: React.FC<GoogleMapProps> = ({
   markers, activeFilters, selectedId, onMarkerClick, onMapClick,
   rescuedPersons = [], showRescuedLayer = false, onToggleRescuedLayer,
   highlightedRescuedId, onHighlightRescuedClear,
+  earthquakes = [], showEarthquakeLayer = false, onToggleEarthquakeLayer,
 }) => {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
   const markersLayerRef = useRef<L.LayerGroup>(L.layerGroup());
   const rescuedLayerRef = useRef<L.LayerGroup>(L.layerGroup());
+  const earthquakeLayerRef = useRef<L.LayerGroup>(L.layerGroup());
   const [mapReady, setMapReady] = useState(false);
   const onMapClickRef = useRef(onMapClick);
   onMapClickRef.current = onMapClick;
@@ -116,6 +122,7 @@ const GoogleMap: React.FC<GoogleMapProps> = ({
 
     markersLayerRef.current.addTo(map);
     rescuedLayerRef.current.addTo(map);
+    earthquakeLayerRef.current.addTo(map);
 
     mapInstanceRef.current = map;
     setMapReady(true);
@@ -230,6 +237,46 @@ const GoogleMap: React.FC<GoogleMapProps> = ({
     };
   }, [highlightedRescuedId, showRescuedLayer, rescuedPersons, onHighlightRescuedClear]);
 
+  useEffect(() => {
+    const map = mapInstanceRef.current;
+    if (!map) return;
+
+    const layer = earthquakeLayerRef.current;
+    layer.clearLayers();
+
+    if (!showEarthquakeLayer || earthquakes.length === 0) return;
+
+    earthquakes.forEach((eq) => {
+      const mag = eq.magnitude;
+      const color = getEarthquakeColor(mag);
+      const iconChar = getEarthquakeIcon(mag);
+
+      const eqHtml = `<div class="eq-marker" style="background:${color};box-shadow:0 0 12px ${color};">${iconChar}</div>`;
+      const icon = createDivIcon(eqHtml, 36, 'earthquake-marker');
+      const marker = L.marker([eq.lat, eq.lng], { icon }).addTo(layer);
+
+      marker.bindTooltip(
+        `<strong>${iconChar} M${mag.toFixed(1)}</strong><br/>
+        <span>${eq.place}</span><br/>
+        <span style="font-size:11px;color:#999;">Prof: ${eq.depth.toFixed(0)} km · ${new Date(eq.time).toLocaleString('es-VE')}</span>`,
+        { direction: 'top', offset: L.point(0, -18), className: 'leaflet-tooltip-custom' }
+      );
+
+      if (mag >= 6) {
+        const radius = Math.min(150000, Math.pow(2, mag - 4) * 15000);
+        L.circle([eq.lat, eq.lng], {
+          radius,
+          color,
+          fillColor: color,
+          fillOpacity: 0.08,
+          weight: 1,
+          opacity: 0.3,
+          className: 'eq-shockwave',
+        }).addTo(layer);
+      }
+    });
+  }, [showEarthquakeLayer, earthquakes]);
+
   return (
     <div style={{ position: 'absolute', inset: 0 }}>
       <div ref={mapRef} style={{ width: '100%', height: '100%' }} />
@@ -239,8 +286,8 @@ const GoogleMap: React.FC<GoogleMapProps> = ({
           <span>Cargando mapa...</span>
         </div>
       )}
-      {onToggleRescuedLayer && (
-        <div className="map-layer-toggle">
+      <div className="map-layer-toggle">
+        {onToggleRescuedLayer && (
           <button
             className={`map-layer-btn ${showRescuedLayer ? 'active' : ''}`}
             onClick={onToggleRescuedLayer}
@@ -249,8 +296,18 @@ const GoogleMap: React.FC<GoogleMapProps> = ({
             🏥 Rescatados {showRescuedLayer ? 'ON' : 'OFF'}
             {rescuedPersons.length > 0 && <span className="map-layer-count">{rescuedPersons.length}</span>}
           </button>
-        </div>
-      )}
+        )}
+        {onToggleEarthquakeLayer && (
+          <button
+            className={`map-layer-btn ${showEarthquakeLayer ? 'active' : ''}`}
+            onClick={onToggleEarthquakeLayer}
+            title={showEarthquakeLayer ? 'Ocultar terremotos' : 'Mostrar terremotos'}
+          >
+            🌍 Terremotos {showEarthquakeLayer ? 'ON' : 'OFF'}
+            {earthquakes.length > 0 && <span className="map-layer-count">{earthquakes.length}</span>}
+          </button>
+        )}
+      </div>
     </div>
   );
 };
