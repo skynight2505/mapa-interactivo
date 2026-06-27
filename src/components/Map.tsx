@@ -110,6 +110,10 @@ export default function GoogleMap({
       maxBoundsViscosity: 1,
       zoomControl: true,
       attributionControl: false,
+      tapTolerance: 15,
+      bounceAtZoomLimits: false,
+      worldCopyJump: false,
+      dragging: !L.Browser.mobile || true,
     });
 
     L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
@@ -149,6 +153,7 @@ export default function GoogleMap({
         direction: 'top',
         offset: L.point(0, -18),
         className: 'leaflet-tooltip-custom',
+        sticky: true,
       });
 
       marker.on('click', () => onMarkerClick(data));

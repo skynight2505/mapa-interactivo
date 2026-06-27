@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { CATEGORIES } from '../utils/categories';
 import { SEVERITY_COLORS } from '../utils/categories';
 import type { MapMarker, RescueLink, RescueLinkCategory } from '../types';
@@ -18,6 +18,24 @@ const CATEGORY_ORDER: RescueLinkCategory[] = ['whatsapp', 'canal_informativo', '
 const MarkerPopup: React.FC<MarkerPopupProps> = ({ marker, onClose, userCanEdit }) => {
   const cat = CATEGORIES[marker.type];
   const { t } = useI18n();
+  const panelRef = useRef<HTMLDivElement>(null);
+  const touchStartY = useRef(0);
+
+  useEffect(() => {
+    const el = panelRef.current;
+    if (!el) return;
+    const onTouchStart = (e: TouchEvent) => { touchStartY.current = e.touches[0].clientY; };
+    const onTouchMove = (e: TouchEvent) => {
+      const dy = e.touches[0].clientY - touchStartY.current;
+      if (dy > 80) { onClose(); }
+    };
+    el.addEventListener('touchstart', onTouchStart, { passive: true });
+    el.addEventListener('touchmove', onTouchMove, { passive: true });
+    return () => {
+      el.removeEventListener('touchstart', onTouchStart);
+      el.removeEventListener('touchmove', onTouchMove);
+    };
+  }, []);
   const [zoneLinks, setZoneLinks] = useState<RescueLink[]>(() => loadZoneLinks(marker.id));
   const [showLinkForm, setShowLinkForm] = useState(false);
   const [linkTitle, setLinkTitle] = useState('');
@@ -72,7 +90,7 @@ const MarkerPopup: React.FC<MarkerPopupProps> = ({ marker, onClose, userCanEdit 
   };
 
   return (
-    <div className="detail-panel">
+    <div className="detail-panel" ref={panelRef}>
       <div className="detail-header">
         <div
           className="detail-icon"
