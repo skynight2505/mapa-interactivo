@@ -3,9 +3,11 @@ import { getAllUsers, addUser, removeUser, updateUserRole, resetUserPassword, ty
 
 interface AdminPanelProps {
   onClose: () => void;
+  onRefreshMap: () => void;
+  refreshLoading: boolean;
 }
 
-const AdminPanel: React.FC<AdminPanelProps> = ({ onClose }) => {
+const AdminPanel: React.FC<AdminPanelProps> = ({ onClose, onRefreshMap, refreshLoading }) => {
   const [users, setUsers] = useState<ReturnType<typeof getAllUsers>>([]);
   const [newUser, setNewUser] = useState({ username: '', password: '', role: 'editor' as UserRole, displayName: '' });
   const [error, setError] = useState('');
@@ -81,6 +83,22 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onClose }) => {
         <div className="modal-body" style={{ maxHeight: '70vh', overflowY: 'auto' }}>
           {error && <div className="login-error">⚠️ {error}</div>}
           {success && <div style={{ padding: '8px 12px', background: 'rgba(34,197,94,0.15)', color: '#22C55E', borderRadius: 8, fontSize: 13, marginBottom: 12 }}>✅ {success}</div>}
+
+          <button
+            onClick={onRefreshMap}
+            disabled={refreshLoading}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 8, width: '100%', marginBottom: 16,
+              padding: '10px 14px', background: '#1e3a5f', border: '1px solid #2563eb',
+              borderRadius: 8, color: '#60A5FA', fontSize: 13, fontWeight: 600,
+              cursor: refreshLoading ? 'wait' : 'pointer', opacity: refreshLoading ? 0.6 : 1,
+            }}
+          >
+            <span style={{ fontSize: 16, lineHeight: 1 }}>
+              {refreshLoading ? '⏳' : '🔄'}
+            </span>
+            {refreshLoading ? 'Sincronizando desde la nube…' : 'Actualizar mapa desde la nube'}
+          </button>
 
           <h3 style={{ fontSize: 14, color: '#94a3b8', marginBottom: 12 }}>Usuarios Actuales</h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 20 }}>

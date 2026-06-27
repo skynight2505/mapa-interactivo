@@ -103,6 +103,7 @@ function App() {
   const [earthquakes, setEarthquakes] = useState<EarthquakeEvent[]>(loadCachedEarthquakes);
   const [showEarthquakeLayer, setShowEarthquakeLayer] = useState(false);
   const [verifiedOnly, setVerifiedOnly] = useState(false);
+  const [refreshLoading, setRefreshLoading] = useState(false);
   const { t } = useI18n();
 
   // Load markers, check auth, and generate notifications on mount
@@ -285,6 +286,19 @@ function App() {
     if (isEditMode) setIsEditMode(false);
   }, [isEditMode, isRescueMode, selectedId]);
 
+  const handleRefreshMap = useCallback(async () => {
+    setRefreshLoading(true);
+    try {
+      const cloud = await tryLoadFromCloud();
+      if (cloud && cloud.length > 0) {
+        setMarkers(cloud);
+        generateAutoNotifications(cloud);
+      }
+    } finally {
+      setRefreshLoading(false);
+    }
+  }, []);
+
   const handleImportConfirm = useCallback((imported: MapMarker[]) => {
     const existing = loadMarkers();
     const existingIds = new Set(existing.map((m) => m.id));
@@ -446,7 +460,11 @@ function App() {
         )}
 
         {showAdminPanel && userCanEdit && (
-          <AdminPanel onClose={() => setShowAdminPanel(false)} />
+          <AdminPanel
+            onClose={() => setShowAdminPanel(false)}
+            onRefreshMap={handleRefreshMap}
+            refreshLoading={refreshLoading}
+          />
         )}
 
         <OnboardingGuide />
