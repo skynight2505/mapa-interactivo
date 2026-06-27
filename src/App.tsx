@@ -216,8 +216,11 @@ function App() {
   }, []);
 
   const handleClosePopup = useCallback(() => {
+    if (isRescueMode) {
+      setIsRescueMode(false);
+      return;
+    }
     setSelectedId(null);
-    if (isRescueMode) setIsRescueMode(false);
   }, [isRescueMode]);
 
   const handleLogin = useCallback(() => {

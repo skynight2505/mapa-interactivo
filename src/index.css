@@ -1587,27 +1587,34 @@ html, body, #root { height: 100%; font-family: 'Inter', system-ui, sans-serif; }
 }
 .rescuer-tabs {
   display: flex;
-  border-bottom: 1px solid #334155;
+  gap: 2px;
+  padding: 8px 12px;
+  overflow-x: auto;
   flex-shrink: 0;
+  border-bottom: 1px solid #334155;
 }
+.rescuer-tabs::-webkit-scrollbar { height: 3px; }
+.rescuer-tabs::-webkit-scrollbar-thumb { background: #475569; border-radius: 2px; }
 .rescuer-tab {
-  flex: 1;
-  padding: 10px 8px;
+  padding: 6px 10px;
   border: none;
+  border-radius: 8px;
   background: transparent;
-  color: #94a3b8;
+  color: #64748b;
   font-size: 11px;
   font-weight: 600;
   cursor: pointer;
+  white-space: nowrap;
   transition: all 0.2s;
   font-family: inherit;
-  border-bottom: 2px solid transparent;
 }
-.rescuer-tab:hover { color: #e2e8f0; background: rgba(255, 255, 255, 0.03); }
+.rescuer-tab:hover {
+  color: #e2e8f0;
+  background: rgba(255, 255, 255, 0.03);
+}
 .rescuer-tab.active {
   color: #EF4444;
-  border-bottom-color: #EF4444;
-  background: rgba(239, 68, 68, 0.05);
+  background: rgba(239, 68, 68, 0.1);
 }
 .rescuer-body {
   flex: 1;
@@ -3004,35 +3011,6 @@ html, body, #root { height: 100%; font-family: 'Inter', system-ui, sans-serif; }
   font-size: 12px;
   font-weight: 600;
   animation: fadeInOut 2s ease-in-out;
-}
-
-/* Adjust rescue tabs for more items */
-.rescuer-tabs {
-  display: flex;
-  gap: 2px;
-  padding: 8px 12px;
-  overflow-x: auto;
-  flex-shrink: 0;
-}
-.rescuer-tab {
-  padding: 6px 10px;
-  border: none;
-  border-radius: 8px;
-  background: transparent;
-  color: #64748b;
-  font-size: 11px;
-  font-weight: 600;
-  cursor: pointer;
-  white-space: nowrap;
-  transition: all 0.2s;
-}
-.rescuer-tab:hover {
-  color: #e2e8f0;
-  background: rgba(255, 255, 255, 0.03);
-}
-.rescuer-tab.active {
-  color: #f8fafc;
-  background: rgba(59, 130, 246, 0.15);
 }
 
 @keyframes fadeInOut {
