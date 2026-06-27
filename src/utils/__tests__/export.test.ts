@@ -1,15 +1,5 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import type { MapMarker, RescuedPerson } from '../../types';
-
-// Mock downloadBlob to avoid actual file downloads
-const mockDownload = vi.fn();
-vi.mock('../export', async (importOriginal) => {
-  const mod = await importOriginal<typeof import('../export')>();
-  return {
-    ...mod,
-    // We test the CSV/JSON generation logic indirectly
-  };
-});
 
 function makeMarker(overrides: Partial<MapMarker> = {}): MapMarker {
   return {

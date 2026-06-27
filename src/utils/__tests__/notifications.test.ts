@@ -9,23 +9,6 @@ import {
   getNotificationColor,
   getNotificationIcon,
 } from '../notifications';
-import type { MapMarker } from '../../types';
-
-function makeMarker(overrides: Partial<MapMarker> = {}): MapMarker {
-  return {
-    id: 'm-1',
-    type: 'terremoto',
-    title: 'Test Zone',
-    description: 'A test zone',
-    lat: 10.0,
-    lng: -66.0,
-    groups: [],
-    supplies: [],
-    createdAt: '2026-01-01T00:00:00.000Z',
-    updatedAt: '2026-01-01T00:00:00.000Z',
-    ...overrides,
-  };
-}
 
 describe('notifications', () => {
   beforeEach(() => {
