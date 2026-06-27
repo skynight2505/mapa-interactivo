@@ -93,8 +93,11 @@ const GoogleMap: React.FC<GoogleMapProps> = ({
     if (!mapRef.current || mapInstanceRef.current) return;
 
     const map = L.map(mapRef.current, {
-      center: [10.4806, -66.9036],
-      zoom: 12,
+      center: [7.0, -66.0],
+      zoom: 6,
+      minZoom: 5,
+      maxBounds: L.latLngBounds(L.latLng(0, -76), L.latLng(13, -58)),
+      maxBoundsViscosity: 1,
       zoomControl: true,
       attributionControl: false,
     });
