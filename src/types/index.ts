@@ -132,6 +132,26 @@ export interface ChatMessage {
   isSystem?: boolean;
 }
 
+// ===== ENLACES DE RESCATE =====
+export type RescueLinkCategory = 'whatsapp' | 'canal_informativo' | 'pagina';
+
+export interface RescueLink {
+  id: string;
+  title: string;
+  url: string;
+  category: RescueLinkCategory;
+  zoneId: string;
+  zoneName: string;
+  createdAt: string;
+  description?: string;
+}
+
+export const RESCUE_LINK_CATEGORIES: Record<RescueLinkCategory, { label: string; icon: string; color: string }> = {
+  whatsapp: { label: 'Grupo WhatsApp', icon: '💬', color: '#25D366' },
+  canal_informativo: { label: 'Canal Informativo', icon: '📢', color: '#3B82F6' },
+  pagina: { label: 'Página Web', icon: '🌐', color: '#8B5CF6' },
+};
+
 // ===== VOLUNTARIOS =====
 export type Specialization =
   | 'medico'

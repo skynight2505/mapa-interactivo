@@ -122,6 +122,16 @@ function App() {
     } catch { /* ignore */ }
   }, []);
 
+  const handleUpdateMarker = useCallback((id: string, updates: Partial<MapMarker>) => {
+    setMarkers((prev) => {
+      const updated = prev.map((m) =>
+        m.id === id ? { ...m, ...updates, updatedAt: new Date().toISOString() } : m
+      );
+      saveMarkers(updated);
+      return updated;
+    });
+  }, []);
+
   const handleAddRescued = useCallback((person: RescuedPerson) => {
     setRescuedPersons(prev => {
       const updated = [...prev, person];
@@ -232,12 +242,11 @@ function App() {
   }, [userCanEdit, userCanAdd, isRescueMode]);
 
   const handleToggleRescue = useCallback(() => {
+    if (!isRescueMode && !selectedId) {
+      return; // Can't enter rescue mode without a selected marker
+    }
     setIsRescueMode((prev) => !prev);
     if (isEditMode) setIsEditMode(false);
-    if (!isRescueMode && !selectedId) {
-      // If no marker selected, can't enter rescue mode
-      return;
-    }
   }, [isEditMode, isRescueMode, selectedId]);
 
   const handleImportConfirm = useCallback((imported: MapMarker[]) => {
@@ -324,7 +333,13 @@ function App() {
           )}
 
           {selectedMarker && isRescueMode && (
-            <RescuerModePanel marker={selectedMarker} onClose={handleClosePopup} />
+            <RescuerModePanel
+              marker={selectedMarker}
+              rescuedPersons={rescuedPersons}
+              onClose={handleClosePopup}
+              onUpdateMarker={handleUpdateMarker}
+              onAddRescued={handleAddRescued}
+            />
           )}
         </div>
 

@@ -119,6 +119,10 @@ export type TranslationKeys = {
   'rescue.tabTools': string;
   'rescue.tabChat': string;
   'rescue.tabBitchat': string;
+  'rescue.tabSupplies': string;
+  'rescue.tabRescued': string;
+  'rescue.tabLinks': string;
+  'rescue.tabPriority': string;
   // Rescued Persons
   'rescued.title': string;
   'rescued.verifyTitle': string;
@@ -254,6 +258,10 @@ const translations: Record<Language, TranslationKeys> = {
     'rescue.tabTools': 'Herramientas',
     'rescue.tabChat': 'Chat',
     'rescue.tabBitchat': 'Bitchat',
+    'rescue.tabSupplies': 'Insumos',
+    'rescue.tabRescued': 'Rescatados',
+    'rescue.tabLinks': 'Grupos',
+    'rescue.tabPriority': 'Prioridad',
     'rescued.title': '🏥 Personas Rescatadas',
     'rescued.verifyTitle': 'Verificación de Desaparecidos',
     'rescued.verifyDesc': 'Puedes verificar el estado de las personas en',
@@ -385,6 +393,10 @@ const translations: Record<Language, TranslationKeys> = {
     'rescue.tabTools': 'Tools',
     'rescue.tabChat': 'Chat',
     'rescue.tabBitchat': 'Bitchat',
+    'rescue.tabSupplies': 'Supplies',
+    'rescue.tabRescued': 'Rescued',
+    'rescue.tabLinks': 'Groups',
+    'rescue.tabPriority': 'Priority',
     'rescued.title': '🏥 Rescued Persons',
     'rescued.verifyTitle': 'Missing Persons Verification',
     'rescued.verifyDesc': 'You can verify people\'s status at',
@@ -516,6 +528,10 @@ const translations: Record<Language, TranslationKeys> = {
     'rescue.tabTools': '工具',
     'rescue.tabChat': '聊天',
     'rescue.tabBitchat': 'Bitchat',
+    'rescue.tabSupplies': '物资',
+    'rescue.tabRescued': '被救者',
+    'rescue.tabLinks': '群组',
+    'rescue.tabPriority': '优先级',
     'rescued.title': '🏥 被救人员',
     'rescued.verifyTitle': '失踪人口验证',
     'rescued.verifyDesc': '您可以在以下网站验证人员状态',
@@ -647,6 +663,10 @@ const translations: Record<Language, TranslationKeys> = {
     'rescue.tabTools': 'الأدوات',
     'rescue.tabChat': 'المحادثة',
     'rescue.tabBitchat': 'Bitchat',
+    'rescue.tabSupplies': 'الإمدادات',
+    'rescue.tabRescued': 'المنقذون',
+    'rescue.tabLinks': 'المجموعات',
+    'rescue.tabPriority': 'الأولوية',
     'rescued.title': '🏥 الأشخاص المنقذون',
     'rescued.verifyTitle': 'التحقق من المفقودين',
     'rescued.verifyDesc': 'يمكنك التحقق من حالة الأشخاص على',
@@ -778,6 +798,10 @@ const translations: Record<Language, TranslationKeys> = {
     'rescue.tabTools': 'Ferramentas',
     'rescue.tabChat': 'Chat',
     'rescue.tabBitchat': 'Bitchat',
+    'rescue.tabSupplies': 'Insumos',
+    'rescue.tabRescued': 'Resgatados',
+    'rescue.tabLinks': 'Grupos',
+    'rescue.tabPriority': 'Prioridade',
     'rescued.title': '🏥 Pessoas Resgatadas',
     'rescued.verifyTitle': 'Verificação de Desaparecidos',
     'rescued.verifyDesc': 'Você pode verificar o status das pessoas em',
