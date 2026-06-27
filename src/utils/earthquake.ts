@@ -1,3 +1,4 @@
+import type { MapMarker } from '../types';
 import { addNotification } from './notifications';
 
 const USGS_URL = 'https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&minmagnitude=4.5&orderby=time&limit=30';
@@ -101,6 +102,43 @@ export function generateEarthquakeNotifications(events: EarthquakeEvent[]): void
       );
     }
   });
+}
+
+const VERIFIED_KEY = 'mapa-verified-eq-ids';
+
+export function generateVerifiedMarkers(events: EarthquakeEvent[]): MapMarker[] {
+  const existing = new Set<string>(JSON.parse(localStorage.getItem(VERIFIED_KEY) || '[]'));
+  const markers: MapMarker[] = [];
+
+  events.forEach((eq) => {
+    if (eq.magnitude >= 6 && !existing.has(eq.id)) {
+      const title = `🌊 Terremoto M${eq.magnitude.toFixed(1)}`;
+      const parts = eq.place.split(', ');
+      const location = parts.length > 1 ? parts.slice(0, 2).join(', ') : eq.place;
+      markers.push({
+        id: `verified-eq-${eq.id}`,
+        type: 'terremoto',
+        title,
+        description: `${location}\nProfundidad: ${eq.depth.toFixed(0)} km | Magnitud: ${eq.magnitude.toFixed(1)}`,
+        lat: eq.lat,
+        lng: eq.lng,
+        severity: eq.magnitude >= 7 ? 'critica' : 'alta',
+        groups: [],
+        supplies: [],
+        isActive: true,
+        createdAt: new Date(eq.time).toISOString(),
+        updatedAt: new Date().toISOString(),
+        verified: true,
+        verifiedSource: 'USGS Earthquake Hazards Program',
+      });
+      existing.add(eq.id);
+    }
+  });
+
+  if (markers.length > 0) {
+    localStorage.setItem(VERIFIED_KEY, JSON.stringify([...existing]));
+  }
+  return markers;
 }
 
 export function getEarthquakeColor(mag: number): string {
