@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import type { RescuedPerson, TerrainType } from '../types';
 import { TERRAIN_LABELS } from '../types';
 import { useI18n } from '../utils/i18n';
+import { tTerrain } from '../utils/translateContent';
 
 interface RescuedExportPanelProps {
   onExportJSON: (data: RescuedPerson[]) => void;
@@ -10,6 +11,7 @@ interface RescuedExportPanelProps {
   onAddPerson: (person: RescuedPerson) => void;
   onSearchResult?: (person: RescuedPerson) => void;
   searchHighlight?: string | null;
+  onClose?: () => void;
 }
 
 const RescuedExportPanel: React.FC<RescuedExportPanelProps> = ({
@@ -19,8 +21,10 @@ const RescuedExportPanel: React.FC<RescuedExportPanelProps> = ({
   onAddPerson,
   onSearchResult,
   searchHighlight,
+  onClose,
 }) => {
   const [showForm, setShowForm] = useState(false);
+  const [editingPerson, setEditingPerson] = useState<RescuedPerson | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [name, setName] = useState('');
   const [age, setAge] = useState(0);
@@ -32,7 +36,27 @@ const RescuedExportPanel: React.FC<RescuedExportPanelProps> = ({
   const [rescuedBy, setRescuedBy] = useState('');
   const [condition, setCondition] = useState<'bueno' | 'herido' | 'critico'>('bueno');
   const [notes, setNotes] = useState('');
-  const { t } = useI18n();
+  const [verificationUrl, setVerificationUrl] = useState('');
+  const [rescueLinks, setRescueLinks] = useState<{ label: string; url: string }[]>([]);
+  const resetForm = () => {
+    setName(''); setAge(0); setGender('masculino'); setZoneName('');
+    setLat(10.4806); setLng(-66.9036); setTerrain('urbano');
+    setRescuedBy(''); setCondition('bueno'); setNotes('');
+    setVerificationUrl(''); setRescueLinks([]);
+    setEditingPerson(null); setShowForm(false);
+  };
+
+  const openEdit = (p: RescuedPerson) => {
+    setEditingPerson(p);
+    setName(p.name); setAge(p.age); setGender(p.gender);
+    setZoneName(p.zoneName); setLat(p.lat); setLng(p.lng);
+    setTerrain(p.terrain || 'urbano'); setRescuedBy(p.rescuedBy || '');
+    setCondition(p.condition); setNotes(p.notes || '');
+    setVerificationUrl(p.verificationUrl || '');
+    setRescueLinks(p.rescueLinks ? [...p.rescueLinks] : []);
+    setShowForm(true);
+  };
+  const { t, lang } = useI18n();
 
   const searchResults = useMemo(() => {
     if (!searchQuery.trim()) return [];
@@ -44,32 +68,30 @@ const RescuedExportPanel: React.FC<RescuedExportPanelProps> = ({
     );
   }, [searchQuery, rescuedPersons]);
 
-  const handleAdd = () => {
+  const handleSave = () => {
     if (!name.trim() || !zoneName.trim()) return;
+    const now = new Date().toISOString();
     const person: RescuedPerson = {
-      id: crypto.randomUUID(),
+      id: editingPerson?.id || crypto.randomUUID(),
       name: name.trim(),
       age,
       gender,
-      zoneId: '',
+      zoneId: editingPerson?.zoneId || '',
       zoneName: zoneName.trim(),
       lat,
       lng,
       terrain,
-      rescuedAt: new Date().toISOString(),
+      rescuedAt: editingPerson?.rescuedAt || now,
       rescuedBy: rescuedBy.trim(),
       condition,
       notes: notes.trim(),
-      verified: false,
-      createdAt: new Date().toISOString(),
+      verified: editingPerson?.verified || false,
+      verificationUrl: verificationUrl.trim() || undefined,
+      rescueLinks: rescueLinks.length > 0 ? rescueLinks.filter(l => l.label.trim() && l.url.trim()) : undefined,
+      createdAt: editingPerson?.createdAt || now,
     };
     onAddPerson(person);
-    setName('');
-    setAge(0);
-    setZoneName('');
-    setRescuedBy('');
-    setNotes('');
-    setShowForm(false);
+    resetForm();
   };
 
   const handleSearchClick = (person: RescuedPerson) => {
@@ -77,11 +99,11 @@ const RescuedExportPanel: React.FC<RescuedExportPanelProps> = ({
   };
 
   return (
-    <div className="modal-overlay" onClick={() => setShowForm(false)}>
+    <div className="modal-overlay" onClick={() => { resetForm(); onClose?.(); }}>
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <h2>{t('rescued.title')}</h2>
-          <button className="modal-close" onClick={() => setShowForm(false)}>✕</button>
+          <button className="modal-close" onClick={() => { resetForm(); onClose?.(); }}>✕</button>
         </div>
         <div className="modal-body">
           {/* Verification notice */}
@@ -185,7 +207,7 @@ const RescuedExportPanel: React.FC<RescuedExportPanelProps> = ({
           {!searchQuery.trim() && rescuedPersons.length > 0 && (
             <div className="rescued-list">
               {rescuedPersons.map(p => {
-                const terrainInfo = p.terrain ? TERRAIN_LABELS[p.terrain] : null;
+                const terrainLabel = p.terrain ? tTerrain(p.terrain, lang) : null;
                 return (
                   <div key={p.id} className="rescued-item">
                     <div className="rescued-item-avatar" style={{
@@ -197,7 +219,7 @@ const RescuedExportPanel: React.FC<RescuedExportPanelProps> = ({
                       <div className="rescued-item-name">{p.name}, {p.age} {t('rescued.yearsOld')}</div>
                       <div className="rescued-item-meta">
                         📍 {p.zoneName}
-                        {terrainInfo && <> · {terrainInfo.icon} {terrainInfo.label}</>}
+                        {terrainLabel && <> · {terrainLabel}</>}
                       </div>
                       <div className="rescued-item-meta">
                         🏥 {p.condition.toUpperCase()} · 🛟 {p.rescuedBy || t('rescued.noRecord')}
@@ -222,6 +244,13 @@ const RescuedExportPanel: React.FC<RescuedExportPanelProps> = ({
                           🗺️
                         </button>
                       )}
+                      <button
+                        className="rescued-verify-btn"
+                        onClick={() => openEdit(p)}
+                        title="Editar"
+                      >
+                        ✏️
+                      </button>
                     </div>
                   </div>
                 );
@@ -231,16 +260,16 @@ const RescuedExportPanel: React.FC<RescuedExportPanelProps> = ({
 
           {/* Add form toggle */}
           {!showForm ? (
-            <button className="form-add-btn" onClick={() => setShowForm(true)}>
+            <button className="form-add-btn" onClick={() => { resetForm(); setShowForm(true); }}>
               {t('rescued.registerPerson')}
             </button>
           ) : (
             <div className="rescued-add-form">
-              <div className="form-section-title">📝 {t('rescued.formName').replace(' *', '')}</div>
+              <div className="form-section-title">📝 {editingPerson ? t('rescued.editPerson') : t('rescued.formName').replace(' *', '')}</div>
               <div className="form-row">
                 <div className="form-group">
                   <label className="form-label">{t('rescued.formName')}</label>
-                  <input className="form-input" placeholder="..." value={name} onChange={e => setName(e.target.value)} />
+                  <input className="form-input" value={name} onChange={e => setName(e.target.value)} />
                 </div>
                 <div className="form-group">
                   <label className="form-label">{t('rescued.formAge')}</label>
@@ -267,7 +296,7 @@ const RescuedExportPanel: React.FC<RescuedExportPanelProps> = ({
               </div>
               <div className="form-group">
                 <label className="form-label">{t('rescued.formZone')}</label>
-                <input className="form-input" placeholder="..." value={zoneName} onChange={e => setZoneName(e.target.value)} />
+                <input className="form-input" value={zoneName} onChange={e => setZoneName(e.target.value)} />
               </div>
               <div className="form-row">
                 <div className="form-group">
@@ -280,12 +309,12 @@ const RescuedExportPanel: React.FC<RescuedExportPanelProps> = ({
                 </div>
                 <div className="form-group">
                   <label className="form-label">{t('rescued.formRescuedBy')}</label>
-                  <input className="form-input" placeholder="..." value={rescuedBy} onChange={e => setRescuedBy(e.target.value)} />
+                  <input className="form-input" value={rescuedBy} onChange={e => setRescuedBy(e.target.value)} />
                 </div>
               </div>
               <div className="form-group">
                 <label className="form-label">{t('rescued.formNotes')}</label>
-                <textarea className="form-textarea" placeholder="..." value={notes} onChange={e => setNotes(e.target.value)} rows={2} />
+                <textarea className="form-textarea" value={notes} onChange={e => setNotes(e.target.value)} rows={2} />
               </div>
               <div className="form-row">
                 <div className="form-group">
@@ -297,8 +326,32 @@ const RescuedExportPanel: React.FC<RescuedExportPanelProps> = ({
                   <input className="form-input" type="number" step="any" value={lng} onChange={e => setLng(parseFloat(e.target.value) || 0)} />
                 </div>
               </div>
-              <button className="btn btn-primary" style={{ width: '100%', marginTop: 8 }} onClick={handleAdd}>
-                {t('rescued.formSubmit')}
+
+              {/* Enlaces */}
+              <div className="form-group">
+                <div className="form-section-title">🔗 Enlaces</div>
+                <div className="form-group">
+                  <label className="form-label" style={{ fontSize: 12 }}>{t('rescued.verificationUrl')}</label>
+                  <input className="form-input" type="url" placeholder="https://..." value={verificationUrl} onChange={e => setVerificationUrl(e.target.value)} />
+                </div>
+                {rescueLinks.map((link, i) => (
+                  <div key={i} className="form-row" style={{ marginBottom: 6 }}>
+                    <input className="form-input" placeholder={t('rescued.linkLabel')} value={link.label} onChange={e => {
+                      const next = [...rescueLinks]; next[i] = { ...next[i], label: e.target.value }; setRescueLinks(next);
+                    }} />
+                    <input className="form-input" placeholder={t('rescued.linkUrl')} value={link.url} onChange={e => {
+                      const next = [...rescueLinks]; next[i] = { ...next[i], url: e.target.value }; setRescueLinks(next);
+                    }} />
+                    <button type="button" className="form-array-remove" onClick={() => setRescueLinks(rescueLinks.filter((_, idx) => idx !== i))}>✕</button>
+                  </div>
+                ))}
+                <button type="button" className="form-add-btn" onClick={() => setRescueLinks([...rescueLinks, { label: '', url: '' }])}>
+                  {t('rescued.addLink')}
+                </button>
+              </div>
+
+              <button className="btn btn-primary" style={{ width: '100%', marginTop: 8 }} onClick={handleSave}>
+                {editingPerson ? t('rescued.saveChanges') : t('rescued.formSubmit')}
               </button>
             </div>
           )}

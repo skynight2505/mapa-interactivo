@@ -1,12 +1,10 @@
-const KV_KEY = 'mapa-markers';
+const KV_KEY = 'mapa-group-zones';
 
-// Fallback in-memory store when KV is not available
 let memoryStore: string | null = null;
 
 export async function onRequest(context) {
   const url = new URL(context.request.url);
 
-  // CORS
   if (context.request.method === 'OPTIONS') {
     return new Response(null, {
       headers: {
@@ -29,13 +27,11 @@ export async function onRequest(context) {
           });
         }
       }
-      // Fallback to memory store
       if (memoryStore) {
         return new Response(memoryStore, {
           headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
         });
       }
-      // No hay datos
       return new Response(JSON.stringify([]), {
         headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
       });

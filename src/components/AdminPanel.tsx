@@ -1,13 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { getAllUsers, addUser, removeUser, updateUserRole, resetUserPassword, type UserRole } from '../utils/auth';
+import { useI18n } from '../utils/i18n';
 
 interface AdminPanelProps {
   onClose: () => void;
   onRefreshMap: () => void;
   refreshLoading: boolean;
+  onAutoGroup?: () => void;
 }
 
-const AdminPanel: React.FC<AdminPanelProps> = ({ onClose, onRefreshMap, refreshLoading }) => {
+const AdminPanel: React.FC<AdminPanelProps> = ({ onClose, onRefreshMap, refreshLoading, onAutoGroup }) => {
+  const { t } = useI18n();
   const [users, setUsers] = useState<ReturnType<typeof getAllUsers>>([]);
   const [newUser, setNewUser] = useState({ username: '', password: '', role: 'editor' as UserRole, displayName: '' });
   const [error, setError] = useState('');
@@ -77,7 +80,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onClose, onRefreshMap, refreshL
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 500 }}>
         <div className="modal-header">
-          <h2>🛡️ Administración de Usuarios</h2>
+          <h2>{t('admin.title')}</h2>
           <button className="modal-close" onClick={onClose}>✕</button>
         </div>
         <div className="modal-body" style={{ maxHeight: '70vh', overflowY: 'auto' }}>
@@ -97,10 +100,25 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onClose, onRefreshMap, refreshL
             <span style={{ fontSize: 16, lineHeight: 1 }}>
               {refreshLoading ? '⏳' : '🔄'}
             </span>
-            {refreshLoading ? 'Sincronizando desde la nube…' : 'Actualizar mapa desde la nube'}
+            {refreshLoading ? t('admin.syncing') : t('admin.sync')}
           </button>
 
-          <h3 style={{ fontSize: 14, color: '#94a3b8', marginBottom: 12 }}>Usuarios Actuales</h3>
+          {onAutoGroup && (
+            <button
+              onClick={onAutoGroup}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 8, width: '100%', marginBottom: 16,
+                padding: '10px 14px', background: 'rgba(124,58,237,0.15)', border: '1px solid #7C3AED',
+                borderRadius: 8, color: '#A78BFA', fontSize: 13, fontWeight: 600,
+                cursor: 'pointer',
+              }}
+            >
+              <span style={{ fontSize: 16, lineHeight: 1 }}>📋</span>
+              Agrupar zonas automáticamente
+            </button>
+          )}
+
+          <h3 style={{ fontSize: 14, color: '#94a3b8', marginBottom: 12 }}>{t('admin.users')}</h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 20 }}>
             {users.map(u => (
               <div key={u.username} style={{
@@ -113,7 +131,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onClose, onRefreshMap, refreshL
                   background: u.role === 'admin' ? 'rgba(239,68,68,0.2)' : 'rgba(59,130,246,0.2)',
                   color: u.role === 'admin' ? '#EF4444' : '#60A5FA',
                 }}>
-                  {u.role === 'admin' ? 'Admin' : u.role === 'editor' ? 'Editor' : 'Visor'}
+                  {u.role === 'admin' ? t('admin.admin') : u.role === 'editor' ? t('admin.editor') : t('admin.viewer')}
                 </span>
                 {u.username !== 'admin' && (
                   <>
@@ -125,19 +143,19 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onClose, onRefreshMap, refreshL
                         borderRadius: 4, color: '#e2e8f0', fontSize: 11,
                       }}
                     >
-                      <option value="editor">Editor</option>
-                      <option value="admin">Admin</option>
-                      <option value="viewer">Visor</option>
+                      <option value="editor">{t('admin.editor')}</option>
+                      <option value="admin">{t('admin.admin')}</option>
+                      <option value="viewer">{t('admin.viewer')}</option>
                     </select>
                     <button
                       onClick={() => handleResetPass(u.username)}
                       style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 14, padding: 2, color: '#f59e0b' }}
-                      title="Cambiar contraseña"
+                      title={t('admin.changePass')}
                     >🔑</button>
                     <button
                       onClick={() => handleRemove(u.username)}
                       style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 14, padding: 2, color: '#EF4444' }}
-                      title="Eliminar"
+                      title={t('sidebar.delete')}
                     >🗑️</button>
                   </>
                 )}
@@ -145,24 +163,24 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onClose, onRefreshMap, refreshL
             ))}
           </div>
 
-          <h3 style={{ fontSize: 14, color: '#94a3b8', marginBottom: 12 }}>Nuevo Usuario</h3>
+          <h3 style={{ fontSize: 14, color: '#94a3b8', marginBottom: 12 }}>{t('admin.newUser')}</h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             <input
               className="form-input"
-              placeholder="Usuario"
+              placeholder={t('admin.usernamePlaceholder')}
               value={newUser.username}
               onChange={(e) => setNewUser(prev => ({ ...prev, username: e.target.value }))}
             />
             <input
               className="form-input"
               type="password"
-              placeholder="Contraseña"
+              placeholder={t('admin.passwordPlaceholder')}
               value={newUser.password}
               onChange={(e) => setNewUser(prev => ({ ...prev, password: e.target.value }))}
             />
             <input
               className="form-input"
-              placeholder="Nombre visible (opcional)"
+              placeholder={t('admin.displayNamePlaceholder')}
               value={newUser.displayName}
               onChange={(e) => setNewUser(prev => ({ ...prev, displayName: e.target.value }))}
             />
@@ -172,12 +190,12 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onClose, onRefreshMap, refreshL
               onChange={(e) => setNewUser(prev => ({ ...prev, role: e.target.value as UserRole }))}
               style={{ cursor: 'pointer' }}
             >
-              <option value="editor">Editor (solo agregar)</option>
-              <option value="admin">Administrador (todo)</option>
-              <option value="viewer">Visor (solo leer)</option>
+              <option value="editor">{t('admin.roleEditor')}</option>
+              <option value="admin">{t('admin.roleAdmin')}</option>
+              <option value="viewer">{t('admin.roleViewer')}</option>
             </select>
             <button className="btn btn-primary" onClick={handleAdd} style={{ alignSelf: 'flex-start' }}>
-              ➕ Crear Usuario
+              {t('admin.createUser')}
             </button>
           </div>
         </div>

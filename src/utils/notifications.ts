@@ -67,8 +67,7 @@ export function getUnreadCount(): number {
 
 // ===== AUTO-GENERATE NOTIFICATIONS =====
 export function generateAutoNotifications(markers: MapMarker[]): void {
-  const existing = loadNotifications();
-  if (existing.length > 0) return; // Already have notifications, skip
+  if (markers.length === 0) return;
 
   markers.forEach((m) => {
     if (m.type === 'personas_atrapadas' && m.severity === 'critica') {

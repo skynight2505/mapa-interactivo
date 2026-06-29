@@ -167,6 +167,6 @@ describe('Sidebar', () => {
   it('shows severity badge', () => {
     const markers = [makeMarker('1', 'Zona A', { severity: 'critica' })];
     renderWithProviders(markers);
-    expect(screen.getByText('critica')).toBeDefined();
+    expect(screen.getByText('Crítica')).toBeDefined();
   });
 });

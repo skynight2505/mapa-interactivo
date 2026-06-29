@@ -16,6 +16,7 @@ export type TranslationKeys = {
   // App
   'app.title': string;
   'app.subtitle': string;
+  'app.verifiedOnly': string;
   // Header
   'btn.data': string;
   'btn.exportJson': string;
@@ -29,6 +30,9 @@ export type TranslationKeys = {
   'btn.addView': string;
   'btn.readOnly': string;
   'btn.admin': string;
+  'btn.guide': string;
+  'header.syncCloud': string;
+  'header.syncLocal': string;
   // Import Modal
   'import.title': string;
   'import.desc': string;
@@ -39,6 +43,11 @@ export type TranslationKeys = {
   // Map
   'map.clickToPlace': string;
   'map.cancel': string;
+  'map.loading': string;
+  'map.clickForOptions': string;
+  'map.removeMarker': string;
+  'map.layerHide': string;
+  'map.layerShow': string;
   // FilterBar
   'filter.label': string;
   'filter.clear': string;
@@ -50,6 +59,9 @@ export type TranslationKeys = {
   'sidebar.of': string;
   'sidebar.zones': string;
   'sidebar.addNew': string;
+  'sidebar.edit': string;
+  'sidebar.delete': string;
+  'sidebar.confirmDelete': string;
   // MarkerPopup
   'popup.severity': string;
   'popup.helpGroups': string;
@@ -63,6 +75,17 @@ export type TranslationKeys = {
   'popup.coords': string;
   'popup.created': string;
   'popup.updated': string;
+  'popup.verifiedBy': string;
+  'popup.verified': string;
+  'popup.photos': string;
+  'popup.noLinks': string;
+  'popup.addLink': string;
+  'popup.linkTitle': string;
+  'popup.linkUrl': string;
+  'popup.linkCategory': string;
+  'popup.linkDesc': string;
+  'popup.linkSubmit': string;
+  'popup.linkCancel': string;
   // MarkerForm
   'form.newZone': string;
   'form.editZone': string;
@@ -93,6 +116,13 @@ export type TranslationKeys = {
   'form.quantity': string;
   'form.unit': string;
   'form.cancel': string;
+  'form.latPlaceholder': string;
+  'form.latHint': string;
+  'form.lngPlaceholder': string;
+  'form.lngHint': string;
+  'form.membersPlaceholder': string;
+  'form.maxImages': string;
+  'form.translations': string;
   // Login
   'login.title': string;
   'login.subtitle': string;
@@ -158,6 +188,40 @@ export type TranslationKeys = {
   'rescued.noRecord': string;
   'rescued.viewOnMap': string;
   'rescued.verifyOnSite': string;
+  'rescued.editPerson': string;
+  'rescued.saveChanges': string;
+  'rescued.verificationUrl': string;
+  'rescued.linkLabel': string;
+  'rescued.linkUrl': string;
+  'rescued.addLink': string;
+  // Search
+  'search.placeholder': string;
+  'search.clearTitle': string;
+  'search.nearbyZones': string;
+  'search.removeMarker': string;
+  'search.addMarkerHere': string;
+  // Error
+  'error.title': string;
+  'error.desc': string;
+  'error.unknown': string;
+  'error.reload': string;
+  // Admin
+  'admin.title': string;
+  'admin.users': string;
+  'admin.admin': string;
+  'admin.editor': string;
+  'admin.viewer': string;
+  'admin.newUser': string;
+  'admin.sync': string;
+  'admin.syncing': string;
+  'admin.changePass': string;
+  'admin.usernamePlaceholder': string;
+  'admin.passwordPlaceholder': string;
+  'admin.displayNamePlaceholder': string;
+  'admin.roleEditor': string;
+  'admin.roleAdmin': string;
+  'admin.roleViewer': string;
+  'admin.createUser': string;
 };
 
 // ===== Translations =====
@@ -165,6 +229,7 @@ const translations: Record<Language, TranslationKeys> = {
   es: {
     'app.title': 'Mapa Interactivo Terremoto Venezuela',
     'app.subtitle': 'zonas de emergencia',
+    'app.verifiedOnly': '✅ Solo verificados',
     'btn.data': 'Datos',
     'btn.exportJson': '📥 Exportar JSON',
     'btn.exportCsv': '📊 Exportar CSV',
@@ -177,6 +242,9 @@ const translations: Record<Language, TranslationKeys> = {
     'btn.addView': 'Agregar',
     'btn.readOnly': 'Solo ver',
     'btn.admin': 'Admin',
+    'btn.guide': 'Guía',
+    'header.syncCloud': 'Sincronizado con la nube (KV)',
+    'header.syncLocal': 'Solo almacenamiento local',
     'import.title': '📥 Importar Datos',
     'import.desc': 'Selecciona un archivo JSON exportado desde esta aplicación para importar los datos.',
     'import.desc2': 'Los marcadores existentes se mantendrán y se agregarán los nuevos.',
@@ -185,6 +253,11 @@ const translations: Record<Language, TranslationKeys> = {
     'import.error': 'Error al importar',
     'map.clickToPlace': '📍 Haz clic en el mapa para colocar la nueva zona',
     'map.cancel': 'Cancelar',
+    'map.loading': 'Cargando mapa...',
+    'map.clickForOptions': 'Click para opciones',
+    'map.removeMarker': '🗑️ Quitar marcador',
+    'map.layerHide': 'Ocultar personas rescatadas',
+    'map.layerShow': 'Mostrar personas rescatadas',
     'filter.label': '🔍 Filtrar:',
     'filter.clear': '✕ Limpiar',
     'sidebar.search': 'Buscar zonas...',
@@ -194,6 +267,9 @@ const translations: Record<Language, TranslationKeys> = {
     'sidebar.of': 'de',
     'sidebar.zones': 'zonas',
     'sidebar.addNew': '➕ Agregar nueva zona',
+    'sidebar.edit': 'Editar',
+    'sidebar.delete': 'Eliminar',
+    'sidebar.confirmDelete': '¿Eliminar esta zona?',
     'popup.severity': 'Severidad:',
     'popup.helpGroups': '👥 Grupos de Ayuda',
     'popup.noGroups': 'No hay grupos asignados a esta zona',
@@ -206,6 +282,17 @@ const translations: Record<Language, TranslationKeys> = {
     'popup.coords': '📍 Coordenadas:',
     'popup.created': 'Creado:',
     'popup.updated': 'Actualizado:',
+    'popup.verifiedBy': 'Verificado por',
+    'popup.verified': '✅ Verificado',
+    'popup.photos': '📷 Fotos',
+    'popup.noLinks': 'No hay enlaces disponibles para esta zona.',
+    'popup.addLink': '➕ Agregar grupo o canal',
+    'popup.linkTitle': 'Título',
+    'popup.linkUrl': 'Enlace (URL)',
+    'popup.linkCategory': 'Categoría',
+    'popup.linkDesc': 'Descripción (opcional)',
+    'popup.linkSubmit': '✅ Agregar',
+    'popup.linkCancel': 'Cancelar',
     'form.newZone': '➕ Nueva Zona',
     'form.editZone': '✏️ Editar Zona',
     'form.zoneType': 'Tipo de Zona',
@@ -235,6 +322,13 @@ const translations: Record<Language, TranslationKeys> = {
     'form.quantity': 'Cantidad',
     'form.unit': 'Unidad',
     'form.cancel': 'Cancelar',
+    'form.latPlaceholder': 'Latitud',
+    'form.latHint': 'Lat (ej: 10.4806)',
+    'form.lngPlaceholder': 'Longitud',
+    'form.lngHint': 'Lng (ej: -66.9036)',
+    'form.membersPlaceholder': 'Miembros',
+    'form.maxImages': 'Máximo 50 imágenes',
+    'form.translations': 'Traducciones',
     'login.title': 'Acceso de Administración',
     'login.subtitle': 'Inicia sesión para editar el mapa de terremoto',
     'login.username': 'Usuario',
@@ -296,10 +390,45 @@ const translations: Record<Language, TranslationKeys> = {
     'rescued.noRecord': 'Sin registro',
     'rescued.viewOnMap': 'Ver en mapa',
     'rescued.verifyOnSite': 'Verificar en desaparecidos',
+    'rescued.editPerson': '✏️ Editar Persona',
+    'rescued.saveChanges': '💾 Guardar Cambios',
+    'rescued.verificationUrl': 'URL de verificación',
+    'rescued.linkLabel': 'Etiqueta',
+    'rescued.linkUrl': 'URL',
+    'rescued.addLink': '➕ Agregar enlace',
+    // Search
+    'search.placeholder': 'Buscar ciudad, hospital, escuela, centro comercial, urbanización...',
+    'search.clearTitle': 'Limpiar búsqueda',
+    'search.nearbyZones': 'Zona registrada',
+    'search.removeMarker': '🗑️ Quitar marcador',
+    'search.addMarkerHere': '➕ Agregar marcador aquí',
+    // Error
+    'error.title': 'Error en la aplicación',
+    'error.desc': 'Ocurrió un error inesperado. Revisa la consola del navegador (F12) para más detalles.',
+    'error.unknown': 'Error desconocido',
+    'error.reload': '🔄 Recargar página',
+    // Admin
+    'admin.title': '🛡️ Administración de Usuarios',
+    'admin.users': 'Usuarios Actuales',
+    'admin.newUser': 'Nuevo Usuario',
+    'admin.sync': 'Actualizar mapa desde la nube',
+    'admin.syncing': 'Sincronizando desde la nube…',
+    'admin.admin': 'Admin',
+    'admin.editor': 'Editor',
+    'admin.viewer': 'Visor',
+    'admin.changePass': 'Cambiar contraseña',
+    'admin.usernamePlaceholder': 'Usuario',
+    'admin.passwordPlaceholder': 'Contraseña',
+    'admin.displayNamePlaceholder': 'Nombre visible (opcional)',
+    'admin.roleEditor': 'Editor (solo agregar)',
+    'admin.roleAdmin': 'Administrador (todo)',
+    'admin.roleViewer': 'Visor (solo leer)',
+    'admin.createUser': '➕ Crear Usuario',
   },
   en: {
     'app.title': 'Interactive Earthquake Map Venezuela',
     'app.subtitle': 'emergency zones',
+    'app.verifiedOnly': '✅ Verified only',
     'btn.data': 'Data',
     'btn.exportJson': '📥 Export JSON',
     'btn.exportCsv': '📊 Export CSV',
@@ -312,6 +441,9 @@ const translations: Record<Language, TranslationKeys> = {
     'btn.addView': 'Add',
     'btn.readOnly': 'View only',
     'btn.admin': 'Admin',
+    'btn.guide': 'Guide',
+    'header.syncCloud': 'Synced with cloud (KV)',
+    'header.syncLocal': 'Local storage only',
     'import.title': '📥 Import Data',
     'import.desc': 'Select a JSON file exported from this application to import the data.',
     'import.desc2': 'Existing markers will be kept and new ones will be added.',
@@ -320,6 +452,11 @@ const translations: Record<Language, TranslationKeys> = {
     'import.error': 'Import error',
     'map.clickToPlace': '📍 Click on the map to place the new zone',
     'map.cancel': 'Cancel',
+    'map.loading': 'Loading map...',
+    'map.clickForOptions': 'Click for options',
+    'map.removeMarker': '🗑️ Remove marker',
+    'map.layerHide': 'Hide rescued persons',
+    'map.layerShow': 'Show rescued persons',
     'filter.label': '🔍 Filter:',
     'filter.clear': '✕ Clear',
     'sidebar.search': 'Search zones...',
@@ -329,6 +466,9 @@ const translations: Record<Language, TranslationKeys> = {
     'sidebar.of': 'of',
     'sidebar.zones': 'zones',
     'sidebar.addNew': '➕ Add new zone',
+    'sidebar.edit': 'Edit',
+    'sidebar.delete': 'Delete',
+    'sidebar.confirmDelete': 'Delete this zone?',
     'popup.severity': 'Severity:',
     'popup.helpGroups': '👥 Help Groups',
     'popup.noGroups': 'No groups assigned to this zone',
@@ -341,6 +481,17 @@ const translations: Record<Language, TranslationKeys> = {
     'popup.coords': '📍 Coordinates:',
     'popup.created': 'Created:',
     'popup.updated': 'Updated:',
+    'popup.verifiedBy': 'Verified by',
+    'popup.verified': '✅ Verified',
+    'popup.photos': '📷 Photos',
+    'popup.noLinks': 'No links available for this zone.',
+    'popup.addLink': '➕ Add group or channel',
+    'popup.linkTitle': 'Title',
+    'popup.linkUrl': 'Link (URL)',
+    'popup.linkCategory': 'Category',
+    'popup.linkDesc': 'Description (optional)',
+    'popup.linkSubmit': '✅ Add',
+    'popup.linkCancel': 'Cancel',
     'form.newZone': '➕ New Zone',
     'form.editZone': '✏️ Edit Zone',
     'form.zoneType': 'Zone Type',
@@ -370,6 +521,13 @@ const translations: Record<Language, TranslationKeys> = {
     'form.quantity': 'Quantity',
     'form.unit': 'Unit',
     'form.cancel': 'Cancel',
+    'form.latPlaceholder': 'Latitude',
+    'form.latHint': 'Lat (e.g. 10.4806)',
+    'form.lngPlaceholder': 'Longitude',
+    'form.lngHint': 'Lng (e.g. -66.9036)',
+    'form.membersPlaceholder': 'Members',
+    'form.maxImages': 'Maximum 50 images',
+    'form.translations': 'Translations',
     'login.title': 'Administration Access',
     'login.subtitle': 'Sign in to edit the earthquake map',
     'login.username': 'Username',
@@ -431,6 +589,40 @@ const translations: Record<Language, TranslationKeys> = {
     'rescued.noRecord': 'No record',
     'rescued.viewOnMap': 'View on map',
     'rescued.verifyOnSite': 'Verify on missing persons site',
+    'rescued.editPerson': '✏️ Edit Person',
+    'rescued.saveChanges': '💾 Save Changes',
+    'rescued.verificationUrl': 'Verification URL',
+    'rescued.linkLabel': 'Label',
+    'rescued.linkUrl': 'URL',
+    'rescued.addLink': '➕ Add link',
+    // Search
+    'search.placeholder': 'Search city, hospital, school, mall, neighborhood...',
+    'search.clearTitle': 'Clear search',
+    'search.nearbyZones': 'Registered zone',
+    'search.removeMarker': '🗑️ Remove marker',
+    'search.addMarkerHere': '➕ Add marker here',
+    // Error
+    'error.title': 'Application Error',
+    'error.desc': 'An unexpected error occurred. Check the browser console (F12) for details.',
+    'error.unknown': 'Unknown error',
+    'error.reload': '🔄 Reload page',
+    // Admin
+    'admin.title': '🛡️ User Administration',
+    'admin.users': 'Current Users',
+    'admin.newUser': 'New User',
+    'admin.sync': 'Update map from cloud',
+    'admin.syncing': 'Syncing from cloud…',
+    'admin.admin': 'Admin',
+    'admin.editor': 'Editor',
+    'admin.viewer': 'Viewer',
+    'admin.changePass': 'Change password',
+    'admin.usernamePlaceholder': 'Username',
+    'admin.passwordPlaceholder': 'Password',
+    'admin.displayNamePlaceholder': 'Display name (optional)',
+    'admin.roleEditor': 'Editor (add only)',
+    'admin.roleAdmin': 'Administrator (all)',
+    'admin.roleViewer': 'Viewer (read only)',
+    'admin.createUser': '➕ Create User',
   },
   zh: {
     'app.title': '委内瑞拉地震交互地图',
@@ -566,6 +758,68 @@ const translations: Record<Language, TranslationKeys> = {
     'rescued.noRecord': '无记录',
     'rescued.viewOnMap': '在地图上查看',
     'rescued.verifyOnSite': '在失踪人员网站验证',
+    'rescued.editPerson': '✏️ 编辑人员',
+    'rescued.saveChanges': '💾 保存更改',
+    'rescued.verificationUrl': '验证 URL',
+    'rescued.linkLabel': '标签',
+    'rescued.linkUrl': 'URL',
+    'rescued.addLink': '➕ 添加链接',
+    // App
+    'app.verifiedOnly': '✅ 仅验证',
+    'btn.guide': '指南',
+    'header.syncCloud': '已与云端同步 (KV)',
+    'header.syncLocal': '仅本地存储',
+    'map.loading': '地图加载中...',
+    'map.clickForOptions': '点击获取选项',
+    'map.removeMarker': '🗑️ 移除标记',
+    'map.layerHide': '隐藏被救人员',
+    'map.layerShow': '显示被救人员',
+    'sidebar.edit': '编辑',
+    'sidebar.delete': '删除',
+    'sidebar.confirmDelete': '删除此区域？',
+    'popup.verifiedBy': '已验证者',
+    'popup.verified': '✅ 已验证',
+    'popup.photos': '📷 照片',
+    'popup.noLinks': '此区域没有可用的链接。',
+    'popup.addLink': '➕ 添加群组或频道',
+    'popup.linkTitle': '标题',
+    'popup.linkUrl': '链接 (URL)',
+    'popup.linkCategory': '类别',
+    'popup.linkDesc': '描述（可选）',
+    'popup.linkSubmit': '✅ 添加',
+    'popup.linkCancel': '取消',
+    'form.latPlaceholder': '纬度',
+    'form.latHint': '纬度 (例如 10.4806)',
+    'form.lngPlaceholder': '经度',
+    'form.lngHint': '经度 (例如 -66.9036)',
+    'form.membersPlaceholder': '成员',
+    'form.maxImages': '最多 50 张图片',
+    'form.translations': '翻译',
+    'search.placeholder': '搜索城市、医院、学校、商场、住宅区...',
+    'search.clearTitle': '清除搜索',
+    'search.nearbyZones': '已注册区域',
+    'search.removeMarker': '🗑️ 移除标记',
+    'search.addMarkerHere': '➕ 在此添加标记',
+    'error.title': '应用程序错误',
+    'error.desc': '发生意外错误。请查看浏览器控制台 (F12) 了解详情。',
+    'error.unknown': '未知错误',
+    'error.reload': '🔄 重新加载页面',
+    'admin.title': '🛡️ 用户管理',
+    'admin.users': '当前用户',
+    'admin.newUser': '新用户',
+    'admin.sync': '从云端更新地图',
+    'admin.syncing': '正在从云端同步…',
+    'admin.admin': '管理员',
+    'admin.editor': '编辑者',
+    'admin.viewer': '查看者',
+    'admin.changePass': '修改密码',
+    'admin.usernamePlaceholder': '用户名',
+    'admin.passwordPlaceholder': '密码',
+    'admin.displayNamePlaceholder': '显示名称（可选）',
+    'admin.roleEditor': '编辑者（仅添加）',
+    'admin.roleAdmin': '管理员（全部）',
+    'admin.roleViewer': '查看者（仅阅读）',
+    'admin.createUser': '➕ 创建用户',
   },
   ar: {
     'app.title': 'خريطة زلزال فنزويلا التفاعلية',
@@ -701,6 +955,68 @@ const translations: Record<Language, TranslationKeys> = {
     'rescued.noRecord': 'بدون سجل',
     'rescued.viewOnMap': 'عرض على الخريطة',
     'rescued.verifyOnSite': 'التحقق على موقع المفقودين',
+    'rescued.editPerson': '✏️ تعديل الشخص',
+    'rescued.saveChanges': '💾 حفظ التغييرات',
+    'rescued.verificationUrl': 'رابط التحقق',
+    'rescued.linkLabel': 'تسمية',
+    'rescued.linkUrl': 'URL',
+    'rescued.addLink': '➕ إضافة رابط',
+    // App
+    'app.verifiedOnly': '✅ تم التحقق فقط',
+    'btn.guide': 'الدليل',
+    'header.syncCloud': 'متزامن مع السحابة (KV)',
+    'header.syncLocal': 'تخزين محلي فقط',
+    'map.loading': 'جاري تحميل الخريطة...',
+    'map.clickForOptions': 'انقر للخيارات',
+    'map.removeMarker': '🗑️ إزالة العلامة',
+    'map.layerHide': 'إخفاء الأشخاص المنقذين',
+    'map.layerShow': 'إظهار الأشخاص المنقذين',
+    'sidebar.edit': 'تعديل',
+    'sidebar.delete': 'حذف',
+    'sidebar.confirmDelete': 'هل تريد حذف هذه المنطقة؟',
+    'popup.verifiedBy': 'تم التحقق بواسطة',
+    'popup.verified': '✅ تم التحقق',
+    'popup.photos': '📷 الصور',
+    'popup.noLinks': 'لا توجد روابط متاحة لهذه المنطقة.',
+    'popup.addLink': '➕ إضافة مجموعة أو قناة',
+    'popup.linkTitle': 'العنوان',
+    'popup.linkUrl': 'الرابط (URL)',
+    'popup.linkCategory': 'الفئة',
+    'popup.linkDesc': 'الوصف (اختياري)',
+    'popup.linkSubmit': '✅ إضافة',
+    'popup.linkCancel': 'إلغاء',
+    'form.latPlaceholder': 'خط العرض',
+    'form.latHint': 'خط العرض (مثال: 10.4806)',
+    'form.lngPlaceholder': 'خط الطول',
+    'form.lngHint': 'خط الطول (مثال: -66.9036)',
+    'form.membersPlaceholder': 'الأعضاء',
+    'form.maxImages': 'الحد الأقصى 50 صورة',
+    'form.translations': 'الترجمات',
+    'search.placeholder': 'ابحث عن مدينة، مستشفى، مدرسة، مركز تجاري...',
+    'search.clearTitle': 'مسح البحث',
+    'search.nearbyZones': 'منطقة مسجلة',
+    'search.removeMarker': '🗑️ إزالة العلامة',
+    'search.addMarkerHere': '➕ إضافة علامة هنا',
+    'error.title': 'خطأ في التطبيق',
+    'error.desc': 'حدث خطأ غير متوقع. تحقق من وحدة تحكم المتصفح (F12) للتفاصيل.',
+    'error.unknown': 'خطأ غير معروف',
+    'error.reload': '🔄 إعادة تحميل الصفحة',
+    'admin.title': '🛡️ إدارة المستخدمين',
+    'admin.users': 'المستخدمون الحاليون',
+    'admin.newUser': 'مستخدم جديد',
+    'admin.sync': 'تحديث الخريطة من السحابة',
+    'admin.syncing': 'جارٍ المزامنة من السحابة…',
+    'admin.admin': 'مدير',
+    'admin.editor': 'محرر',
+    'admin.viewer': 'مشاهد',
+    'admin.changePass': 'تغيير كلمة المرور',
+    'admin.usernamePlaceholder': 'اسم المستخدم',
+    'admin.passwordPlaceholder': 'كلمة المرور',
+    'admin.displayNamePlaceholder': 'الاسم الظاهر (اختياري)',
+    'admin.roleEditor': 'محرر (إضافة فقط)',
+    'admin.roleAdmin': 'مدير (الكل)',
+    'admin.roleViewer': 'مشاهد (قراءة فقط)',
+    'admin.createUser': '➕ إنشاء مستخدم',
   },
   pt: {
     'app.title': 'Mapa Interativo do Terremoto da Venezuela',
@@ -836,6 +1152,68 @@ const translations: Record<Language, TranslationKeys> = {
     'rescued.noRecord': 'Sem registro',
     'rescued.viewOnMap': 'Ver no mapa',
     'rescued.verifyOnSite': 'Verificar no site de desaparecidos',
+    'rescued.editPerson': '✏️ Editar Pessoa',
+    'rescued.saveChanges': '💾 Salvar Alterações',
+    'rescued.verificationUrl': 'URL de verificação',
+    'rescued.linkLabel': 'Rótulo',
+    'rescued.linkUrl': 'URL',
+    'rescued.addLink': '➕ Adicionar link',
+    // App
+    'app.verifiedOnly': '✅ Verificados apenas',
+    'btn.guide': 'Guia',
+    'header.syncCloud': 'Sincronizado com a nuvem (KV)',
+    'header.syncLocal': 'Apenas armazenamento local',
+    'map.loading': 'Carregando mapa...',
+    'map.clickForOptions': 'Clique para opções',
+    'map.removeMarker': '🗑️ Remover marcador',
+    'map.layerHide': 'Ocultar pessoas resgatadas',
+    'map.layerShow': 'Mostrar pessoas resgatadas',
+    'sidebar.edit': 'Editar',
+    'sidebar.delete': 'Excluir',
+    'sidebar.confirmDelete': 'Excluir esta zona?',
+    'popup.verifiedBy': 'Verificado por',
+    'popup.verified': '✅ Verificado',
+    'popup.photos': '📷 Fotos',
+    'popup.noLinks': 'Nenhum link disponível para esta zona.',
+    'popup.addLink': '➕ Adicionar grupo ou canal',
+    'popup.linkTitle': 'Título',
+    'popup.linkUrl': 'Link (URL)',
+    'popup.linkCategory': 'Categoria',
+    'popup.linkDesc': 'Descrição (opcional)',
+    'popup.linkSubmit': '✅ Adicionar',
+    'popup.linkCancel': 'Cancelar',
+    'form.latPlaceholder': 'Latitude',
+    'form.latHint': 'Lat (ex: 10.4806)',
+    'form.lngPlaceholder': 'Longitude',
+    'form.lngHint': 'Lng (ex: -66.9036)',
+    'form.membersPlaceholder': 'Membros',
+    'form.maxImages': 'Máximo 50 imagens',
+    'form.translations': 'Traduções',
+    'search.placeholder': 'Buscar cidade, hospital, escola, shopping, bairro...',
+    'search.clearTitle': 'Limpar busca',
+    'search.nearbyZones': 'Zona registrada',
+    'search.removeMarker': '🗑️ Remover marcador',
+    'search.addMarkerHere': '➕ Adicionar marcador aqui',
+    'error.title': 'Erro na Aplicação',
+    'error.desc': 'Ocorreu um erro inesperado. Verifique o console do navegador (F12) para detalhes.',
+    'error.unknown': 'Erro desconhecido',
+    'error.reload': '🔄 Recarregar página',
+    'admin.title': '🛡️ Administração de Usuários',
+    'admin.users': 'Usuários Atuais',
+    'admin.newUser': 'Novo Usuário',
+    'admin.sync': 'Atualizar mapa da nuvem',
+    'admin.syncing': 'Sincronizando da nuvem…',
+    'admin.admin': 'Admin',
+    'admin.editor': 'Editor',
+    'admin.viewer': 'Visualizador',
+    'admin.changePass': 'Alterar senha',
+    'admin.usernamePlaceholder': 'Usuário',
+    'admin.passwordPlaceholder': 'Senha',
+    'admin.displayNamePlaceholder': 'Nome visível (opcional)',
+    'admin.roleEditor': 'Editor (apenas adicionar)',
+    'admin.roleAdmin': 'Administrador (tudo)',
+    'admin.roleViewer': 'Visualizador (apenas ler)',
+    'admin.createUser': '➕ Criar Usuário',
   },
 };
 

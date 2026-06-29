@@ -20,6 +20,8 @@ const defaultProps = {
   isRescueMode: false,
   onToggleRescue: vi.fn(),
   onAdminClick: vi.fn(),
+  desktopMode: false,
+  onToggleDesktopMode: vi.fn(),
 };
 
 function renderHeader(props: Partial<typeof defaultProps> = {}) {
@@ -81,31 +83,31 @@ describe('Header', () => {
   });
 
   it('shows edit mode text when in edit mode', () => {
-    renderHeader({ isEditMode: true, userCanEdit: true });
+    renderHeader({ isEditMode: true, userCanEdit: true, user: { username: 'admin', role: 'admin', displayName: 'Admin' } });
     expect(screen.getByText('Edición')).toBeDefined();
   });
 
   it('shows view mode text when not in edit mode', () => {
-    renderHeader({ isEditMode: false });
+    renderHeader({ user: { username: 'admin', role: 'admin', displayName: 'Admin' } });
     expect(screen.getByText('Solo ver')).toBeDefined();
   });
 
   it('calls onToggleMode when edit/view button clicked', () => {
     const onToggleMode = vi.fn();
-    renderHeader({ onToggleMode });
+    renderHeader({ onToggleMode, user: { username: 'admin', role: 'admin', displayName: 'Admin' } });
     fireEvent.click(screen.getByText('Solo ver'));
     expect(onToggleMode).toHaveBeenCalledOnce();
   });
 
   it('shows rescue mode button', () => {
     renderHeader();
-    expect(screen.getByText('Rescatista')).toBeDefined();
+    expect(screen.getByText('Modo Rescatista')).toBeDefined();
   });
 
   it('calls onToggleRescue when rescue button clicked', () => {
     const onToggleRescue = vi.fn();
     renderHeader({ onToggleRescue });
-    fireEvent.click(screen.getByText('Rescatista'));
+    fireEvent.click(screen.getByText('Modo Rescatista'));
     expect(onToggleRescue).toHaveBeenCalledOnce();
   });
 

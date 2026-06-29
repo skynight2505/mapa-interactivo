@@ -3,5 +3,11 @@
   "name": "mapa-interactivo",
   "compatibility_date": "2026-06-27",
   "compatibility_flags": ["nodejs_compat"],
-  "pages_build_output_dir": "./dist"
+  "pages_build_output_dir": "./dist",
+  "kv_namespaces": [
+    {
+      "binding": "MAPA_KV",
+      "id": "8702ae796b1e4b9588e8a7dd5b911d9e"
+    }
+  ]
 }

@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import type { MapMarker, TerrainType } from '../types';
 import { SEVERITY_COLORS } from '../utils/categories';
-import { TERRAIN_LABELS } from '../types';
+import { useI18n } from '../utils/i18n';
+import { tTerrain, tSeverity } from '../utils/translateContent';
 
 interface ZonePriorityManagerProps {
   marker: MapMarker;
@@ -17,6 +18,7 @@ const SEVERITY_OPTIONS: { key: SeverityKey; label: string; icon: string; color: 
 ];
 
 const ZonePriorityManager: React.FC<ZonePriorityManagerProps> = ({ marker, onUpdate }) => {
+  const { lang, t } = useI18n();
   const [activeSeverity, setActiveSeverity] = useState<SeverityKey>(marker.severity || 'media');
   const [activeTerrain, setActiveTerrain] = useState<TerrainType>(marker.terrain || 'urbano');
   const [saved, setSaved] = useState(false);
@@ -40,7 +42,7 @@ const ZonePriorityManager: React.FC<ZonePriorityManagerProps> = ({ marker, onUpd
       <div className="zone-priority-section">
         <div className="zone-priority-section-title">⚠️ Gravedad de la Zona</div>
         <div className="zone-priority-current" style={{ color: SEVERITY_COLORS[activeSeverity] }}>
-          Nivel actual: {activeSeverity.toUpperCase()}
+          {tSeverity(activeSeverity, lang)}
         </div>
         <div className="zone-priority-options">
           {SEVERITY_OPTIONS.map((opt) => (
@@ -54,27 +56,26 @@ const ZonePriorityManager: React.FC<ZonePriorityManagerProps> = ({ marker, onUpd
               }}
               onClick={() => handleSaveSeverity(opt.key)}
             >
-              {opt.icon} {opt.label}
+              {opt.icon} {tSeverity(opt.key, lang)}
             </button>
           ))}
         </div>
       </div>
 
       <div className="zone-priority-section">
-        <div className="zone-priority-section-title">🏔️ Tipo de Terreno</div>
+        <div className="zone-priority-section-title">{t('form.terrain')}</div>
         <div className="zone-priority-options terrain">
-          {(Object.entries(TERRAIN_LABELS) as [TerrainType, typeof TERRAIN_LABELS[TerrainType]][]).map(([key, val]) => (
+          {(['urbano', 'montañoso', 'costero', 'rural', 'industrial', 'mixin'] as TerrainType[]).map((key) => (
             <button
               key={key}
               className={`zone-priority-opt terrain-opt ${activeTerrain === key ? 'active' : ''}`}
               style={{
-                borderColor: val.color,
-                backgroundColor: activeTerrain === key ? `${val.color}22` : 'transparent',
-                color: activeTerrain === key ? val.color : '#94a3b8',
+                backgroundColor: activeTerrain === key ? 'rgba(59,130,246,0.15)' : 'transparent',
+                color: activeTerrain === key ? '#60a5fa' : '#94a3b8',
               }}
               onClick={() => handleSaveTerrain(key)}
             >
-              {val.icon} {val.label}
+              {tTerrain(key, lang)}
             </button>
           ))}
         </div>

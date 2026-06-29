@@ -2,10 +2,12 @@ import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { CATEGORIES } from '../utils/categories';
 import { SEVERITY_COLORS } from '../utils/categories';
 import type { MapMarker, RescueLink, RescueLinkCategory } from '../types';
-import { TERRAIN_LABELS, RESCUE_LINK_CATEGORIES } from '../types';
+import { RESCUE_LINK_CATEGORIES } from '../types';
 import SiteStatusDashboard from './SiteStatusDashboard';
 import { useI18n } from '../utils/i18n';
 import { loadZoneLinks, saveAllLinks, loadAllLinks } from '../utils/links';
+import { tCategory, tTerrain, tSeverity, tMarkerContent, tLinkCategory } from '../utils/translateContent';
+import LinkifiedText from './LinkifiedText';
 
 interface MarkerPopupProps {
   marker: MapMarker;
@@ -16,8 +18,8 @@ interface MarkerPopupProps {
 const CATEGORY_ORDER: RescueLinkCategory[] = ['whatsapp', 'canal_informativo', 'pagina'];
 
 const MarkerPopup: React.FC<MarkerPopupProps> = ({ marker, onClose, userCanEdit }) => {
-  const cat = CATEGORIES[marker.type];
-  const { t } = useI18n();
+  const cat = CATEGORIES[marker.type] || { icon: '❓', color: '#64748b', bgColor: '#1e293b', label: 'Desconocido' };
+  const { t, lang } = useI18n();
   const panelRef = useRef<HTMLDivElement>(null);
   const touchStartY = useRef(0);
 
@@ -36,6 +38,14 @@ const MarkerPopup: React.FC<MarkerPopupProps> = ({ marker, onClose, userCanEdit 
       el.removeEventListener('touchmove', onTouchMove);
     };
   }, []);
+  const [lightboxIdx, setLightboxIdx] = useState<number | null>(null);
+  const [showImages, setShowImages] = useState(true);
+  const [zoom, setZoom] = useState(1);
+  const [pan, setPan] = useState({ x: 0, y: 0 });
+  const [isPanning, setIsPanning] = useState(false);
+  const [panStart, setPanStart] = useState({ x: 0, y: 0 });
+  const lbTouchStartX = useRef(0);
+  const lbTouchStartY = useRef(0);
   const [zoneLinks, setZoneLinks] = useState<RescueLink[]>(() => loadZoneLinks(marker.id));
   const [showLinkForm, setShowLinkForm] = useState(false);
   const [linkTitle, setLinkTitle] = useState('');
@@ -100,28 +110,28 @@ const MarkerPopup: React.FC<MarkerPopupProps> = ({ marker, onClose, userCanEdit 
         </div>
         <div className="detail-title-group">
           <div className="detail-title">
-            {marker.title}
+            {tMarkerContent(marker, lang, 'title')}
             {marker.verified && (
-              <span className="verified-badge" title={`Verificado por ${marker.verifiedSource || 'fuente oficial'}`}>
-                ✅ Verificado
+              <span className="verified-badge" title={`${t('popup.verifiedBy')} ${marker.verifiedSource || 'fuente oficial'}`}>
+                {t('popup.verified')}
               </span>
             )}
           </div>
           <div className="detail-type">
-            {cat.label}
+            {tCategory(marker.type, lang)}
             {marker.severity && (
               <>
                 {' · '}
                 <span style={{ color: SEVERITY_COLORS[marker.severity] }}>
-                  {t('popup.severity')} {marker.severity.toUpperCase()}
+                  {t('popup.severity')} {tSeverity(marker.severity, lang)}
                 </span>
               </>
             )}
-            {marker.terrain && TERRAIN_LABELS[marker.terrain] && (
+            {marker.terrain && (
               <>
                 {' · '}
-                <span style={{ color: TERRAIN_LABELS[marker.terrain].color }}>
-                  {TERRAIN_LABELS[marker.terrain].icon} {TERRAIN_LABELS[marker.terrain].label}
+                <span>
+                  {tTerrain(marker.terrain, lang)}
                 </span>
               </>
             )}
@@ -131,7 +141,118 @@ const MarkerPopup: React.FC<MarkerPopupProps> = ({ marker, onClose, userCanEdit 
       </div>
 
       <div className="detail-body">
-        <p className="detail-description">{marker.description}</p>
+        <p className="detail-description"><LinkifiedText text={tMarkerContent(marker, lang, 'description')} /></p>
+
+        {/* Imágenes — colapsable */}
+        {marker.images && marker.images.length > 0 && (
+          <div className="detail-section">
+            <div
+              className="detail-section-title"
+              style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, userSelect: 'none' }}
+              onClick={() => setShowImages(!showImages)}
+            >
+              {t('popup.photos')} ({marker.images.length}) {showImages ? '▼' : '▶'}
+            </div>
+            {showImages && (
+              <div className="detail-image-grid">
+                {marker.images.map((img, i) => (
+                  <div key={i} className="detail-image-thumb" onClick={() => { setLightboxIdx(i); setZoom(1); setPan({ x: 0, y: 0 }); }}>
+                    <img src={img} alt={`${t('popup.photos')} ${i + 1}`} />
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Lightbox con zoom, pan y swipe */}
+        {lightboxIdx !== null && marker.images && marker.images[lightboxIdx] && (
+          <div
+            className="lightbox-overlay"
+            onClick={() => setLightboxIdx(null)}
+            onWheel={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              setZoom(prev => Math.max(0.5, Math.min(5, prev - e.deltaY * 0.002)));
+            }}
+            onTouchStart={(e) => {
+              if (e.touches.length === 1) {
+                lbTouchStartX.current = e.touches[0].clientX;
+                lbTouchStartY.current = e.touches[0].clientY;
+                setIsPanning(false);
+              }
+            }}
+            onTouchMove={(e) => {
+              if (e.touches.length === 1 && zoom > 1) {
+                const dx = e.touches[0].clientX - lbTouchStartX.current;
+                const dy = e.touches[0].clientY - lbTouchStartY.current;
+                if (Math.abs(dx) > 5 || Math.abs(dy) > 5) {
+                  setIsPanning(true);
+                  setPan(prev => ({ x: prev.x + dx, y: prev.y + dy }));
+                }
+                lbTouchStartX.current = e.touches[0].clientX;
+                lbTouchStartY.current = e.touches[0].clientY;
+              }
+            }}
+            onTouchEnd={(e) => {
+              if (!isPanning && zoom === 1) {
+                const dx = e.changedTouches[0].clientX - lbTouchStartX.current;
+                if (Math.abs(dx) > 50) {
+                  e.preventDefault();
+                  const next = dx < 0 ? lightboxIdx + 1 : lightboxIdx - 1;
+                  if (next >= 0 && next < (marker.images?.length || 1)) {
+                    setLightboxIdx(next);
+                    setZoom(1);
+                    setPan({ x: 0, y: 0 });
+                  }
+                }
+              }
+              setIsPanning(false);
+            }}
+          >
+            <button className="lightbox-close" onClick={() => setLightboxIdx(null)}>✕</button>
+            <button className="lightbox-zoom-btn lightbox-zoom-in" onClick={(e) => { e.stopPropagation(); setZoom(prev => Math.min(5, prev + 0.5)); }}>🔍+</button>
+            <button className="lightbox-zoom-btn lightbox-zoom-out" onClick={(e) => { e.stopPropagation(); setZoom(prev => Math.max(0.5, prev - 0.5)); }}>🔍−</button>
+            {zoom !== 1 && (
+              <button className="lightbox-zoom-btn lightbox-zoom-reset" onClick={(e) => { e.stopPropagation(); setZoom(1); setPan({ x: 0, y: 0 }); }}>↺</button>
+            )}
+            {lightboxIdx > 0 && (
+              <button className="lightbox-nav lightbox-prev" onClick={(e) => { e.stopPropagation(); setLightboxIdx(lightboxIdx - 1); setZoom(1); setPan({ x: 0, y: 0 }); }}>‹</button>
+            )}
+            {lightboxIdx < (marker.images?.length || 1) - 1 && (
+              <button className="lightbox-nav lightbox-next" onClick={(e) => { e.stopPropagation(); setLightboxIdx(lightboxIdx + 1); setZoom(1); setPan({ x: 0, y: 0 }); }}>›</button>
+            )}
+            <div className="lightbox-counter">{lightboxIdx + 1} / {marker.images.length}</div>
+            <div
+              className="lightbox-image-wrap"
+              onClick={(e) => e.stopPropagation()}
+              onMouseDown={(e) => {
+                if (zoom > 1) {
+                  setIsPanning(true);
+                  setPanStart({ x: e.clientX - pan.x, y: e.clientY - pan.y });
+                }
+              }}
+              onMouseMove={(e) => {
+                if (isPanning && zoom > 1) {
+                  setPan({ x: e.clientX - panStart.x, y: e.clientY - panStart.y });
+                }
+              }}
+              onMouseUp={() => setIsPanning(false)}
+              onMouseLeave={() => setIsPanning(false)}
+              style={{ cursor: zoom > 1 ? 'grab' : 'default' }}
+            >
+              <img
+                className="lightbox-image"
+                src={marker.images[lightboxIdx]}
+                alt={`${t('popup.photos')} ${lightboxIdx + 1}`}
+                style={{
+                  transform: `scale(${zoom}) translate(${pan.x / zoom}px, ${pan.y / zoom}px)`,
+                  transition: isPanning ? 'none' : 'transform 0.2s ease',
+                }}
+              />
+            </div>
+          </div>
+        )}
 
         {/* Site Status Dashboard */}
         <SiteStatusDashboard marker={marker} />
@@ -195,12 +316,12 @@ const MarkerPopup: React.FC<MarkerPopupProps> = ({ marker, onClose, userCanEdit 
             🔗 Grupos y Canales ({zoneLinks.length})
           </div>
           {zoneLinks.length === 0 && !showLinkForm && (
-            <p className="detail-no-data">No hay enlaces disponibles para esta zona.</p>
+            <p className="detail-no-data">{t('popup.noLinks')}</p>
           )}
           {categorizedLinks.map(({ cat, config, links: catLinks }) => (
             <div key={cat} style={{ marginBottom: 8 }}>
               <div style={{ fontSize: 12, fontWeight: 700, color: config.color, marginBottom: 4 }}>
-                {config.icon} {config.label}
+                {config.icon} {tLinkCategory(cat, lang)}
               </div>
               {catLinks.map((link) => (
                 <div key={link.id} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 8px', borderRadius: 6, background: 'rgba(255,255,255,0.03)', marginBottom: 4 }}>
@@ -230,21 +351,21 @@ const MarkerPopup: React.FC<MarkerPopupProps> = ({ marker, onClose, userCanEdit 
               onClick={() => setShowLinkForm(true)}
               style={{ width: '100%', padding: '8px', border: '1px dashed #475569', borderRadius: 6, background: 'transparent', color: '#94a3b8', fontSize: 12, cursor: 'pointer', textAlign: 'center', marginTop: 4 }}
             >
-              ➕ Agregar grupo o canal
+              {t('popup.addLink')}
             </button>
           )}
           {showLinkForm && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8, padding: 10, borderRadius: 8, background: 'rgba(255,255,255,0.03)', border: '1px solid #334155', marginTop: 4 }}>
               <div>
-                <label style={{ fontSize: 11, color: '#94a3b8', fontWeight: 600, marginBottom: 4, display: 'block' }}>Título</label>
+                <label style={{ fontSize: 11, color: '#94a3b8', fontWeight: 600, marginBottom: 4, display: 'block' }}>{t('popup.linkTitle')}</label>
                 <input className="form-input" placeholder="Ej: Rescate Centro" value={linkTitle} onChange={(e) => setLinkTitle(e.target.value)} />
               </div>
               <div>
-                <label style={{ fontSize: 11, color: '#94a3b8', fontWeight: 600, marginBottom: 4, display: 'block' }}>Enlace (URL)</label>
+                <label style={{ fontSize: 11, color: '#94a3b8', fontWeight: 600, marginBottom: 4, display: 'block' }}>{t('popup.linkUrl')}</label>
                 <input className="form-input" placeholder="https://chat.whatsapp.com/..." value={linkUrl} onChange={(e) => setLinkUrl(e.target.value)} />
               </div>
               <div>
-                <label style={{ fontSize: 11, color: '#94a3b8', fontWeight: 600, marginBottom: 4, display: 'block' }}>Categoría</label>
+                <label style={{ fontSize: 11, color: '#94a3b8', fontWeight: 600, marginBottom: 4, display: 'block' }}>{t('popup.linkCategory')}</label>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 4 }}>
                   {CATEGORY_ORDER.map((cat) => {
                     const cfg = RESCUE_LINK_CATEGORIES[cat];
@@ -254,19 +375,19 @@ const MarkerPopup: React.FC<MarkerPopupProps> = ({ marker, onClose, userCanEdit 
                         style={{ padding: '6px', borderRadius: 6, border: `1px solid ${cfg.color}`, background: linkCategory === cat ? `${cfg.color}22` : 'transparent', color: linkCategory === cat ? cfg.color : '#94a3b8', cursor: 'pointer', fontSize: 10, fontWeight: 600 }}
                         onClick={() => setLinkCategory(cat)}
                       >
-                        {cfg.icon} {cfg.label}
+                        {cfg.icon} {tLinkCategory(cat, lang)}
                       </button>
                     );
                   })}
                 </div>
               </div>
               <div>
-                <label style={{ fontSize: 11, color: '#94a3b8', fontWeight: 600, marginBottom: 4, display: 'block' }}>Descripción (opcional)</label>
+                <label style={{ fontSize: 11, color: '#94a3b8', fontWeight: 600, marginBottom: 4, display: 'block' }}>{t('popup.linkDesc')}</label>
                 <input className="form-input" placeholder="Breve descripción" value={linkDesc} onChange={(e) => setLinkDesc(e.target.value)} />
               </div>
               <div style={{ display: 'flex', gap: 8 }}>
-                <button className="btn btn-primary" style={{ flex: 1, fontSize: 12, padding: '8px' }} onClick={handleAddLink}>✅ Agregar</button>
-                <button className="btn btn-secondary" style={{ flex: 1, fontSize: 12, padding: '8px' }} onClick={() => setShowLinkForm(false)}>Cancelar</button>
+                <button className="btn btn-primary" style={{ flex: 1, fontSize: 12, padding: '8px' }} onClick={handleAddLink}>{t('popup.linkSubmit')}</button>
+                <button className="btn btn-secondary" style={{ flex: 1, fontSize: 12, padding: '8px' }} onClick={() => setShowLinkForm(false)}>{t('popup.linkCancel')}</button>
               </div>
             </div>
           )}

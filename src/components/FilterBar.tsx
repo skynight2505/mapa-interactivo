@@ -2,6 +2,7 @@ import React from 'react';
 import { CATEGORIES } from '../utils/categories';
 import type { MarkerType } from '../types';
 import { useI18n } from '../utils/i18n';
+import { tCategory } from '../utils/translateContent';
 
 interface FilterBarProps {
   activeFilters: MarkerType[];
@@ -14,7 +15,7 @@ const FilterBar: React.FC<FilterBarProps> = ({
   onToggleFilter,
   onClearFilters,
 }) => {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   return (
     <div className="filter-bar">
       <span className="filter-label">{t('filter.label')}</span>
@@ -30,7 +31,7 @@ const FilterBar: React.FC<FilterBarProps> = ({
             } as React.CSSProperties}
             onClick={() => onToggleFilter(cat.type)}
           >
-            {cat.icon} {cat.label}
+            {cat.icon} {tCategory(cat.type, lang)}
           </button>
         );
       })}

@@ -71,10 +71,10 @@ describe('auth', () => {
       expect(canDelete(admin)).toBe(true);
     });
 
-    it('editor can add but not edit or delete', () => {
+    it('editor can add, edit, but not delete', () => {
       const editor = { username: 'editor', role: 'editor' as const, displayName: 'Editor' };
       expect(canAdd(editor)).toBe(true);
-      expect(canEdit(editor)).toBe(false);
+      expect(canEdit(editor)).toBe(true);
       expect(canDelete(editor)).toBe(false);
     });
 
@@ -85,7 +85,7 @@ describe('auth', () => {
       expect(canDelete(viewer)).toBe(false);
     });
 
-    it('null user cannot do anything', () => {
+    it('null user cannot add, edit, or delete', () => {
       expect(canAdd(null)).toBe(false);
       expect(canEdit(null)).toBe(false);
       expect(canDelete(null)).toBe(false);

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import type { ChatMessage } from '../types';
+import { useI18n } from '../utils/i18n';
 
 interface GroupChatPanelProps {
   groupName: string;
@@ -15,6 +16,7 @@ const MOCK_MESSAGES: ChatMessage[] = [
 ];
 
 const GroupChatPanel: React.FC<GroupChatPanelProps> = ({ groupName, groupId }) => {
+  useI18n();
   const [messages, setMessages] = useState<ChatMessage[]>(MOCK_MESSAGES);
   const [newMessage, setNewMessage] = useState('');
   const [userName, setUserName] = useState('');

@@ -1,5 +1,6 @@
 import React from 'react';
 import type { RescueTool } from '../types';
+import { useI18n } from '../utils/i18n';
 
 const RECOMMENDED_TOOLS: RescueTool[] = [
   // Rescate
@@ -48,6 +49,7 @@ const PRIORITY_COLORS: Record<string, string> = {
 };
 
 const RescueToolsRecommendations: React.FC = () => {
+  useI18n();
   const categories = Object.keys(CATEGORY_LABELS);
 
   return (

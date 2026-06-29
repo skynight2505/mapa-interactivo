@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useI18n } from '../utils/i18n';
 
 const STORAGE_KEY = 'mapa-onboarding-done';
 
@@ -36,6 +37,7 @@ const STEPS = [
 ];
 
 export default function OnboardingGuide() {
+  useI18n();
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState(0);
 

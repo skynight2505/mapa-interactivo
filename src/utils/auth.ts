@@ -94,24 +94,24 @@ export function logout(): void {
   setCurrentUser(null);
 }
 
-/** Editor y admin pueden agregar nuevos marcadores/personas */
+/** Solo editor/admin pueden agregar */
 export function canAdd(user: User | null): boolean {
   return user !== null && (user.role === 'admin' || user.role === 'editor');
 }
 
-/** Solo admin puede editar marcadores/personas existentes */
+/** Solo editor/admin pueden editar marcadores existentes */
 export function canEdit(user: User | null): boolean {
-  return user !== null && user.role === 'admin';
+  return user !== null && (user.role === 'admin' || user.role === 'editor');
 }
 
-/** Solo admin puede eliminar */
+/** Solo admin puede eliminar marcadores */
 export function canDelete(user: User | null): boolean {
   return user !== null && user.role === 'admin';
 }
 
 // ===== USER MANAGEMENT (Admin) =====
 
-export function getAllUsers(): (StoredUser & { _rawPassword?: string })[] {
+function getAllStoredUsers(): StoredUser[] {
   const stored = localStorage.getItem(USERS_KEY);
   return stored ? JSON.parse(stored) : [];
 }
@@ -120,13 +120,17 @@ function saveUsers(users: StoredUser[]): void {
   localStorage.setItem(USERS_KEY, JSON.stringify(users));
 }
 
+export function getAllUsers(): (Omit<StoredUser, 'passwordHash'>)[] {
+  return getAllStoredUsers().map(({ passwordHash, ...rest }) => rest);
+}
+
 export function addUser(
   username: string,
   password: string,
   role: UserRole,
   displayName: string
 ): { success: boolean; error?: string } {
-  const users = getAllUsers();
+  const users = getAllStoredUsers();
   if (users.find(u => u.username === username)) {
     return { success: false, error: 'El usuario ya existe' };
   }
@@ -144,7 +148,7 @@ export function removeUser(username: string): { success: boolean; error?: string
   if (username === 'admin') {
     return { success: false, error: 'No puedes eliminar al administrador principal' };
   }
-  const users = getAllUsers().filter(u => u.username !== username);
+  const users = getAllStoredUsers().filter(u => u.username !== username);
   saveUsers(users);
   return { success: true };
 }
@@ -156,7 +160,7 @@ export function updateUserRole(
   if (username === 'admin' && role !== 'admin') {
     return { success: false, error: 'El administrador principal debe mantener su rol' };
   }
-  const users = getAllUsers();
+  const users = getAllStoredUsers();
   const user = users.find(u => u.username === username);
   if (!user) return { success: false, error: 'Usuario no encontrado' };
   user.role = role;
@@ -168,7 +172,7 @@ export function resetUserPassword(
   username: string,
   newPassword: string
 ): { success: boolean; error?: string } {
-  const users = getAllUsers();
+  const users = getAllStoredUsers();
   const user = users.find(u => u.username === username);
   if (!user) return { success: false, error: 'Usuario no encontrado' };
   user.passwordHash = simpleHash(newPassword);

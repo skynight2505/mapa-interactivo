@@ -7,19 +7,19 @@ import Sidebar from './components/Sidebar';
 import GoogleMap from './components/Map';
 
 import MarkerPopup from './components/MarkerPopup';
+import MapSearch from './components/MapSearch';
 import MarkerForm from './components/MarkerForm';
 import LoginScreen from './components/LoginScreen';
 import AdminPanel from './components/AdminPanel';
 import RescuerModePanel from './components/RescuerModePanel';
 import RescuedExportPanel from './components/RescuedExportPanel';
 import OnboardingGuide from './components/OnboardingGuide';
-import { loadMarkers, saveMarkers, addMarker, updateMarker, deleteMarker, tryLoadFromCloud } from './utils/storage';
+import { loadMarkers, saveMarkers, addMarker, updateMarker, deleteMarker, tryLoadFromCloud, saveRescuedPersons, tryLoadRescuedFromCloud, getAllGroupZones, addGroupZone, updateGroupZone, deleteGroupZone, tryLoadGroupZonesFromCloud } from './utils/storage';
 import { getCurrentUser, logout, canEdit, canAdd, canDelete, type User } from './utils/auth';
 import { importFromJSON, exportToJSON, exportToCSV, exportRescuedJSON, exportRescuedCSV } from './utils/export';
 import { generateAutoNotifications, requestNotificationPermission } from './utils/notifications';
-import { fetchEarthquakes, cacheEarthquakes, loadCachedEarthquakes, generateEarthquakeNotifications, generateVerifiedMarkers, type EarthquakeEvent } from './utils/earthquake';
 import { SAMPLE_MARKERS } from './data/sampleData';
-import type { MapMarker, MarkerType, RescuedPerson } from './types';
+import type { MapMarker, MarkerType, RescuedPerson, GroupZone } from './types';
 
 // ===== IMPORT MODAL =====
 interface ImportModalProps {
@@ -85,7 +85,6 @@ function App() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [activeFilters, setActiveFilters] = useState<MarkerType[]>([]);
   const [isEditMode, setIsEditMode] = useState(false);
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [editingMarker, setEditingMarker] = useState<MapMarker | null>(null);
   const [newMarkerCoords, setNewMarkerCoords] = useState<{ lat: number; lng: number } | null>(null);
@@ -100,60 +99,133 @@ function App() {
   const [showRescuedLayer, setShowRescuedLayer] = useState(false);
   const [highlightedRescuedId, setHighlightedRescuedId] = useState<string | null>(null);
   const [showAdminPanel, setShowAdminPanel] = useState(false);
-  const [earthquakes, setEarthquakes] = useState<EarthquakeEvent[]>(loadCachedEarthquakes);
-  const [showEarthquakeLayer, setShowEarthquakeLayer] = useState(false);
-  const [verifiedOnly, setVerifiedOnly] = useState(false);
   const [refreshLoading, setRefreshLoading] = useState(false);
+  const [searchTarget, setSearchTarget] = useState<{ lat: number; lng: number; name: string; displayName: string } | null>(null);
+  const [groupZones, setGroupZones] = useState<GroupZone[]>([]);
+  const [activeGroupId, setActiveGroupId] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [desktopMode, setDesktopMode] = useState(
+    () => localStorage.getItem('mapa-desktop-mode') === 'true'
+  );
   const { t } = useI18n();
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(
+    typeof window !== 'undefined' && window.innerWidth < 768
+  );
 
-  // Load markers, check auth, and generate notifications on mount
+  // Sync sidebar collapsed state with screen size and desktop mode
   useEffect(() => {
-    setUser(getCurrentUser());
-    requestNotificationPermission();
+    if (desktopMode) {
+      setSidebarCollapsed(false);
+      return;
+    }
+    const onResize = () => setSidebarCollapsed(window.innerWidth < 768);
+    window.addEventListener('resize', onResize);
+    onResize();
+    return () => window.removeEventListener('resize', onResize);
+  }, [desktopMode]);
 
-    // Try cloud first, fall back to localStorage
-    tryLoadFromCloud().then((cloud) => {
-      if (cloud && cloud.length > 0) {
-        setMarkers(cloud);
-        generateAutoNotifications(cloud);
-        return;
-      }
-      // Fallback: local
-      let markerData = loadMarkers();
-      if (markerData.length === 0) {
-        saveMarkers(SAMPLE_MARKERS);
-        markerData = SAMPLE_MARKERS;
-      }
-      setMarkers(markerData);
-      generateAutoNotifications(markerData);
-    });
-
-    // Load rescued persons from localStorage
-    try {
-      const saved = localStorage.getItem('rescued_persons');
-      if (saved) {
-        const rescuedData: RescuedPerson[] = JSON.parse(saved);
-        if (rescuedData.length > 0) setRescuedPersons(rescuedData);
-      }
-    } catch { /* ignore */ }
-
-    // Fetch earthquakes and auto-generate verified markers
-    fetchEarthquakes().then((events) => {
-      if (events.length > 0) {
-        setEarthquakes(events);
-        cacheEarthquakes(events);
-        generateEarthquakeNotifications(events);
-        const verified = generateVerifiedMarkers(events);
-        if (verified.length > 0) {
-          setMarkers((prev) => {
-            const updated = [...verified, ...prev];
-            saveMarkers(updated);
-            return updated;
-          });
-        }
-      }
+  const handleToggleDesktopMode = useCallback(() => {
+    setDesktopMode(prev => {
+      const next = !prev;
+      localStorage.setItem('mapa-desktop-mode', String(next));
+      return next;
     });
   }, []);
+
+    // Load all cloud data in parallel, then fall back to local
+    useEffect(() => {
+      // Cache-busting: force reload if app version changed
+      const APP_VERSION = '2026-06-28-v2';
+      try {
+        const prev = localStorage.getItem('mapa-app-version');
+        if (prev && prev !== APP_VERSION) {
+          if ('caches' in window) {
+            caches.keys().then(keys => Promise.all(keys.map(k => caches.delete(k))));
+          }
+          if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.getRegistrations().then(regs => {
+              regs.forEach(r => r.unregister());
+            });
+          }
+          localStorage.clear();
+          sessionStorage.clear();
+          localStorage.setItem('mapa-app-version', APP_VERSION);
+          window.location.reload();
+          return;
+        }
+        localStorage.setItem('mapa-app-version', APP_VERSION);
+      } catch { /* ignore */ }
+
+      // Clean up old cached earthquake data
+      try {
+        localStorage.removeItem('mapa-earthquake-events');
+        localStorage.removeItem('mapa-terremoto-notifications');
+      } catch { /* ignore */ }
+  
+      setUser(getCurrentUser());
+      requestNotificationPermission();
+
+    // Load all cloud data in parallel
+    Promise.all([
+      tryLoadFromCloud(),
+      tryLoadRescuedFromCloud(),
+      tryLoadGroupZonesFromCloud(),
+    ]).then(([cloudMarkers, cloudRescued, cloudGroups]) => {
+      // Markers
+      if (cloudMarkers && cloudMarkers.length > 0) {
+        setMarkers(cloudMarkers);
+      } else {
+        let markerData = loadMarkers();
+        if (markerData.length === 0) {
+          saveMarkers(SAMPLE_MARKERS);
+          markerData = SAMPLE_MARKERS;
+        }
+        setMarkers(markerData);
+      }
+
+      // Rescued persons
+      if (cloudRescued && cloudRescued.length > 0) {
+        setRescuedPersons(cloudRescued);
+      } else {
+        try {
+          const saved = localStorage.getItem('rescued_persons');
+          if (saved) {
+            const rescuedData: RescuedPerson[] = JSON.parse(saved);
+            if (rescuedData.length > 0) setRescuedPersons(rescuedData);
+          }
+        } catch { /* ignore */ }
+      }
+
+      // Group zones
+      if (cloudGroups && cloudGroups.length > 0) {
+        setGroupZones(cloudGroups);
+      } else {
+        setGroupZones(getAllGroupZones());
+      }
+
+      // Auto-group only now: both markers AND groups are settled
+      setLoading(false);
+    });
+
+    // Auto-sync every 30s: silently refresh data from cloud
+    const pollInterval = setInterval(() => {
+      tryLoadFromCloud().then(data => { if (data) setMarkers(data); });
+      tryLoadRescuedFromCloud().then(data => { if (data) setRescuedPersons(data); });
+      tryLoadGroupZonesFromCloud().then(data => { if (data) setGroupZones(data); });
+    }, 30000);
+    return () => clearInterval(pollInterval);
+
+  }, []);
+
+  // Auto-group: run once after cloud data is loaded
+  const didAutoGroup = useRef(false);
+  useEffect(() => {
+    if (markers.length > 0 && !loading && !didAutoGroup.current) {
+      didAutoGroup.current = true;
+      const timer = setTimeout(() => autoDetectGroups(), 400);
+      return () => clearTimeout(timer);
+    }
+  }, [markers.length, loading]);
 
   const handleUpdateMarker = useCallback((id: string, updates: Partial<MapMarker>) => {
     setMarkers((prev) => {
@@ -167,8 +239,11 @@ function App() {
 
   const handleAddRescued = useCallback((person: RescuedPerson) => {
     setRescuedPersons(prev => {
-      const updated = [...prev, person];
-      localStorage.setItem('rescued_persons', JSON.stringify(updated));
+      const exists = prev.findIndex(p => p.id === person.id);
+      const updated = exists >= 0
+        ? prev.map((p, i) => i === exists ? person : p)
+        : [...prev, person];
+      saveRescuedPersons(updated);
       return updated;
     });
   }, []);
@@ -182,7 +257,6 @@ function App() {
   const userCanEdit = canEdit(user);
   const userCanAdd = canAdd(user);
   const userCanDelete = canDelete(user);
-  const filteredMarkers = verifiedOnly ? markers.filter((m) => m.verified) : markers;
 
   const handleToggleFilter = useCallback((type: MarkerType) => {
     setActiveFilters((prev) =>
@@ -197,7 +271,12 @@ function App() {
   const handleSelectMarker = useCallback((marker: MapMarker) => {
     setSelectedId(marker.id);
     setSidebarCollapsed(false);
-  }, []);
+    setActiveGroupId(prev => {
+      if (!marker) return prev;
+      const zone = groupZones.find(z => z.markerIds.includes(marker.id));
+      return zone ? zone.id : prev;
+    });
+  }, [groupZones]);
 
   const handleDeleteMarker = useCallback((id: string) => {
     const updated = deleteMarker(id);
@@ -226,6 +305,8 @@ function App() {
       setIsPlacingMarker(false);
       setEditingMarker(null);
       setShowForm(true);
+    } else {
+      setActiveGroupId(null);
     }
   }, [isPlacingMarker]);
 
@@ -235,6 +316,7 @@ function App() {
       updated = updateMarker(marker);
     } else {
       updated = addMarker(marker);
+      generateAutoNotifications([marker]);
     }
     setMarkers(updated);
     setShowForm(false);
@@ -270,13 +352,10 @@ function App() {
   }, []);
 
   const handleToggleEdit = useCallback(() => {
-    if (!userCanEdit && !userCanAdd) {
-      setShowLogin(true);
-      return;
-    }
+    if (!user) return;
     setIsEditMode((prev) => !prev);
     if (isRescueMode) setIsRescueMode(false);
-  }, [userCanEdit, userCanAdd, isRescueMode]);
+  }, [isRescueMode, user]);
 
   const handleToggleRescue = useCallback(() => {
     if (!isRescueMode && !selectedId) {
@@ -289,14 +368,232 @@ function App() {
   const handleRefreshMap = useCallback(async () => {
     setRefreshLoading(true);
     try {
-      const cloud = await tryLoadFromCloud();
-      if (cloud && cloud.length > 0) {
-        setMarkers(cloud);
-        generateAutoNotifications(cloud);
+      const merged = await tryLoadFromCloud();
+      if (merged && merged.length > 0) {
+        setMarkers(merged);
+        saveMarkers(merged);
+      }
+      const rescued = await tryLoadRescuedFromCloud();
+      if (rescued && rescued.length > 0) {
+        setRescuedPersons(rescued);
+        saveRescuedPersons(rescued);
+      }
+      const groupZs = await tryLoadGroupZonesFromCloud();
+      if (groupZs && groupZs.length > 0) {
+        setGroupZones(groupZs);
       }
     } finally {
       setRefreshLoading(false);
     }
+  }, []);
+
+  const autoDetectGroups = useCallback(() => {
+    // Known Venezuelan cities and their neighborhoods/urbanizations
+    const NEIGHBORHOODS: Record<string, string[]> = {
+      'caracas': [
+        'petare', 'chacao', 'baruta', 'el hatillo', 'la candelaria', 'el paraíso', 'el paraiso',
+        'la florida', 'los palos grandes', 'las mercedes', 'altamira', 'sabana grande',
+        'el rosal', 'la castellana', 'los chorros', 'santa edu vigis', 'sebucán', 'sebucan',
+        'la carlota', 'bello monte', 'colinas de bello monte', 'san bernardino',
+        'san agustín', 'san agustin', 'el silencio', 'catia', '23 de enero',
+        'antímano', 'antimano', 'el valle', 'caricuao', 'la vega', 'san juan',
+        'san josé', 'san jose', 'la pastora', 'el junquito', 'macarao', 'la trinidad',
+        'parque central', 'la yaguara', 'gato negro', 'propatria', 'lomas de ½aro',
+        'la bandeja', 'el cementerio', 'coche', 'el peñón', 'el penon',
+      ],
+      'la guaira': [
+        'maiquetía', 'maiquetia', 'catia la mar', 'macuto', 'caraballeda',
+        'naiguatá', 'naiguata', 'pariata', 'punta de mulatos', 'tanaguarena',
+      ],
+      'maracaibo': [
+        'bella vista', 'la vereda del lago', 'el milagro', 'santa lucía', 'santa lucia',
+        'las delicias', 'ziruma', 'la limpia', 'haticos', 'san jacinto',
+        'venezuela', 'el taladro', 'la salina', 'el varillal',
+      ],
+      'valencia': [
+        'el viñedo', 'el vinedo', 'la isabelica', 'naguanagua', 'san diego',
+        'los guayos', 'prebo', 'guaparo', 'la valencia', 'la viña', 'el trigal',
+        'candelaria', 'san blas',
+      ],
+      'barquisimeto': [
+        'cabudare', 'las trinitarias', 'el obelisco', 'bararida', 'santa rosa',
+        'el cují', 'el cuji', 'la erita', 'la florida',
+      ],
+      'maracay': [
+        'las delicias', 'san jacinto', 'santa rita', 'caña de azúcar', 'caña de azucar',
+        'la floresta', 'san miguel', 'los almendrones', 'pedernales', 'la soledad',
+      ],
+    };
+
+    const ALL_CITIES = Object.keys(NEIGHBORHOODS);
+
+    // Skip markers that already have a parentGroupId
+    const ungrouped = markers.filter(m => !m.parentGroupId);
+
+    // Extract city + neighborhood from marker title/description
+    function extractLocation(m: MapMarker): { city: string; neighborhood: string | null; rawHood: string | null } {
+      const text = (m.title + ' ' + (m.description || '')).toLowerCase();
+      for (const [city, hoods] of Object.entries(NEIGHBORHOODS)) {
+        for (const hood of hoods) {
+          if (text.includes(hood)) {
+            const cityName = city.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+            return { city: cityName, neighborhood: hood, rawHood: hood };
+          }
+        }
+      }
+      for (const city of ALL_CITIES) {
+        if (text.includes(city)) {
+          const cityName = city.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+          return { city: cityName, neighborhood: null, rawHood: null };
+        }
+      }
+      return { city: '', neighborhood: null, rawHood: null };
+    }
+
+    // First pass: assign markers to (city, rawHood) buckets
+    const bucketMap = new Map<string, MapMarker[]>();
+    const bucketKey = (loc: { city: string; rawHood: string | null }) => loc.rawHood || loc.city;
+    for (const m of ungrouped) {
+      const loc = extractLocation(m);
+      if (!loc.city) continue;
+      const key = bucketKey(loc);
+      if (!bucketMap.has(key)) bucketMap.set(key, []);
+      bucketMap.get(key)!.push(m);
+    }
+
+    // Only process buckets with 3+ markers
+    const significant = Array.from(bucketMap.entries()).filter(([, mks]) => mks.length >= 3);
+    if (significant.length === 0) return;
+
+    // Derive group name from most frequent word in marker titles (≥4 chars)
+    function deriveName(mks: MapMarker[], fallback: string): string {
+      const freq: Record<string, number> = {};
+      for (const m of mks) {
+        const words = m.title.split(/[-–—,;\s]+/).map(w => w.trim().toLowerCase()).filter(w => w.length >= 4);
+        for (const w of words) {
+          freq[w] = (freq[w] || 0) + 1;
+        }
+      }
+      const sorted = Object.entries(freq).sort((a, b) => b[1] - a[1]);
+      if (sorted.length > 0 && sorted[0][1] >= 2) {
+        return sorted[0][0].charAt(0).toUpperCase() + sorted[0][0].slice(1);
+      }
+      return fallback.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+    }
+
+    const groupedNames = new Set(groupZones.map(z => z.name));
+    const newZones: GroupZone[] = [];
+
+    for (const [key, mks] of significant) {
+      const name = deriveName(mks, key);
+
+      // If a group with this name already exists, merge markers into it
+      if (groupedNames.has(name)) {
+        const existing = groupZones.find(z => z.name === name)!;
+        const mergedIds = [...new Set([...existing.markerIds, ...mks.map(m => m.id)])];
+        const avgLat = mks.reduce((s, m) => s + m.lat, 0) / mks.length;
+        const avgLng = mks.reduce((s, m) => s + m.lng, 0) / mks.length;
+        const updatedZones = updateGroupZone({ ...existing, markerIds: mergedIds, lat: avgLat, lng: avgLng, updatedAt: new Date().toISOString() });
+        setGroupZones(updatedZones);
+        setMarkers(prev => {
+          const next = prev.map(m => mks.some(c => c.id === m.id) ? { ...m, parentGroupId: existing.id, updatedAt: new Date().toISOString() } : m);
+          saveMarkers(next);
+          return next;
+        });
+        continue;
+      }
+
+      newZones.push({
+        id: crypto.randomUUID(),
+        name,
+        lat: mks.reduce((s, m) => s + m.lat, 0) / mks.length,
+        lng: mks.reduce((s, m) => s + m.lng, 0) / mks.length,
+        markerIds: mks.map(m => m.id),
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      });
+    }
+
+    if (newZones.length === 0) return;
+
+    const allZones = [...groupZones, ...newZones];
+    setGroupZones(allZones);
+    newZones.forEach(z => addGroupZone(z));
+    setMarkers(prev => {
+      const next = prev.map(m => {
+        const zone = newZones.find(z => z.markerIds.includes(m.id));
+        return zone ? { ...m, parentGroupId: zone.id, updatedAt: new Date().toISOString() } : m;
+      });
+      saveMarkers(next);
+      return next;
+    });
+  }, [markers, groupZones]);
+
+  const handleCreateGroupZone = useCallback((name: string, markerIds: string[]) => {
+    if (markerIds.length === 0) return;
+    const markersToGroup = markers.filter(m => markerIds.includes(m.id));
+    if (markersToGroup.length === 0) return;
+    const finalName = name.trim();
+
+    // If group with same name exists, merge markers into it
+    const existing = groupZones.find(z => z.name === finalName);
+    if (existing) {
+      const mergedIds = [...new Set([...existing.markerIds, ...markerIds])];
+      const mergedMarkers = markers.filter(m => mergedIds.includes(m.id));
+      const avgLat = mergedMarkers.reduce((s, m) => s + m.lat, 0) / mergedMarkers.length;
+      const avgLng = mergedMarkers.reduce((s, m) => s + m.lng, 0) / mergedMarkers.length;
+      const updated = updateGroupZone({ ...existing, markerIds: mergedIds, lat: avgLat, lng: avgLng, updatedAt: new Date().toISOString() });
+      setGroupZones(updated);
+      setMarkers(prev => {
+        const next = prev.map(m => markerIds.includes(m.id) ? { ...m, parentGroupId: existing.id, updatedAt: new Date().toISOString() } : m);
+        saveMarkers(next);
+        return next;
+      });
+      return;
+    }
+
+    const avgLat = markersToGroup.reduce((s, m) => s + m.lat, 0) / markersToGroup.length;
+    const avgLng = markersToGroup.reduce((s, m) => s + m.lng, 0) / markersToGroup.length;
+    const zone: GroupZone = {
+      id: crypto.randomUUID(),
+      name: finalName,
+      lat: avgLat,
+      lng: avgLng,
+      markerIds,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+    const updated = addGroupZone(zone);
+    setGroupZones(updated);
+    setMarkers(prev => {
+      const next = prev.map(m => markerIds.includes(m.id) ? { ...m, parentGroupId: zone.id, updatedAt: new Date().toISOString() } : m);
+      saveMarkers(next);
+      return next;
+    });
+  }, [markers, groupZones]);
+
+  const handleDeleteGroupZone = useCallback((groupId: string) => {
+    const updated = deleteGroupZone(groupId);
+    setGroupZones(updated);
+    // Unlink markers from this group
+    setMarkers(prev => {
+      const next = prev.map(m => m.parentGroupId === groupId ? { ...m, parentGroupId: undefined, updatedAt: new Date().toISOString() } : m);
+      saveMarkers(next);
+      return next;
+    });
+  }, []);
+
+  const handleRemoveMarkerFromGroup = useCallback((groupId: string, markerId: string) => {
+    const zones = getAllGroupZones();
+    const zone = zones.find(z => z.id === groupId);
+    if (!zone) return;
+    const updated = updateGroupZone({ ...zone, markerIds: zone.markerIds.filter(id => id !== markerId) });
+    setGroupZones(updated);
+    setMarkers(prev => {
+      const next = prev.map(m => m.id === markerId ? { ...m, parentGroupId: undefined, updatedAt: new Date().toISOString() } : m);
+      saveMarkers(next);
+      return next;
+    });
   }, []);
 
   const handleImportConfirm = useCallback((imported: MapMarker[]) => {
@@ -313,6 +610,12 @@ function App() {
 
   return (
     <div className="app-layout">
+      {loading && (
+        <div className="loading-overlay">
+          <div className="loading-spinner" />
+          <p>Cargando...</p>
+        </div>
+      )}
       <Header
         isEditMode={isEditMode}
         onToggleMode={handleToggleEdit}
@@ -328,6 +631,8 @@ function App() {
         isRescueMode={isRescueMode}
         onToggleRescue={handleToggleRescue}
         onAdminClick={() => setShowAdminPanel(true)}
+        desktopMode={desktopMode}
+        onToggleDesktopMode={handleToggleDesktopMode}
       />
 
       <FilterBar
@@ -336,21 +641,10 @@ function App() {
         onClearFilters={handleClearFilters}
       />
 
-      <div className="verified-filter-bar">
-        <button
-          className={`verified-filter-chip ${verifiedOnly ? 'active' : ''}`}
-          onClick={() => setVerifiedOnly((prev) => !prev)}
-        >
-          ✅ Solo verificados
-          {verifiedOnly && (
-            <span className="verified-filter-count">{markers.filter((m) => m.verified).length}</span>
-          )}
-        </button>
-      </div>
-
-      <div className="app-body">
+      <div className={`app-body${desktopMode ? ' desktop-mode' : ''}`}>
         <Sidebar
-          markers={filteredMarkers}
+          markers={markers}
+          groupZones={groupZones}
           selectedId={selectedId}
           onSelect={handleSelectMarker}
           onDelete={handleDeleteMarker}
@@ -362,39 +656,47 @@ function App() {
           onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
           onAddNew={handleAddNew}
           userCanAdd={userCanAdd}
+          onCreateGroup={handleCreateGroupZone}
+          onDeleteGroup={handleDeleteGroupZone}
+          onRemoveFromGroup={handleRemoveMarkerFromGroup}
         />
 
         <div className="map-container">
+          <MapSearch
+            onSelect={(r) => setSearchTarget({ lat: r.lat, lng: r.lng, name: r.displayName.split(',')[0], displayName: r.displayName })}
+            onClear={() => setSearchTarget(null)}
+            userCanEdit={userCanEdit}
+            onAddMarker={(lat, lng) => { setNewMarkerCoords({ lat, lng }); setIsPlacingMarker(true); setShowForm(true); }}
+            markers={markers}
+            onViewMarker={(id) => handleSelectMarker(markers.find(m => m.id === id)!)}
+          />
           <GoogleMap
-            markers={filteredMarkers}
+            markers={markers}
+            groupZones={groupZones}
             activeFilters={activeFilters}
             selectedId={selectedId}
             onMarkerClick={handleSelectMarker}
             onMapClick={handleMapClick}
+            onGroupClick={(groupId) => {
+              setActiveGroupId(prev => prev === groupId ? null : groupId);
+            }}
+            activeGroupId={activeGroupId}
             rescuedPersons={rescuedPersons}
             showRescuedLayer={showRescuedLayer}
             highlightedRescuedId={highlightedRescuedId}
             onHighlightRescuedClear={() => setHighlightedRescuedId(null)}
-            earthquakes={earthquakes}
-            showEarthquakeLayer={showEarthquakeLayer}
+            searchTarget={searchTarget}
+            onClearSearchTarget={() => setSearchTarget(null)}
           />
 
           <div className="map-layer-toggle">
             <button
               className={`map-layer-btn ${showRescuedLayer ? 'active' : ''}`}
               onClick={() => setShowRescuedLayer(prev => !prev)}
-              title={showRescuedLayer ? 'Ocultar personas rescatadas' : 'Mostrar personas rescatadas'}
+              title={showRescuedLayer ? t('map.layerHide') : t('map.layerShow')}
             >
-              🏥 Rescatados {showRescuedLayer ? 'ON' : 'OFF'}
+              🏥 {t('btn.rescuedPersons')} {showRescuedLayer ? 'ON' : 'OFF'}
               {rescuedPersons.length > 0 && <span className="map-layer-count">{rescuedPersons.length}</span>}
-            </button>
-            <button
-              className={`map-layer-btn ${showEarthquakeLayer ? 'active' : ''}`}
-              onClick={() => setShowEarthquakeLayer(prev => !prev)}
-              title={showEarthquakeLayer ? 'Ocultar terremotos' : 'Mostrar terremotos'}
-            >
-              🌍 Terremotos {showEarthquakeLayer ? 'ON' : 'OFF'}
-              {earthquakes.length > 0 && <span className="map-layer-count">{earthquakes.length}</span>}
             </button>
           </div>
 
@@ -456,6 +758,7 @@ function App() {
             onExportCSV={(data) => exportRescuedCSV(data)}
             onSearchResult={handleSearchRescued}
             searchHighlight={highlightedRescuedId}
+            onClose={() => setShowRescuedPanel(false)}
           />
         )}
 
@@ -464,6 +767,7 @@ function App() {
             onClose={() => setShowAdminPanel(false)}
             onRefreshMap={handleRefreshMap}
             refreshLoading={refreshLoading}
+            onAutoGroup={autoDetectGroups}
           />
         )}
 

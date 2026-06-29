@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import type { RescuedPerson } from '../types';
+import { useI18n } from '../utils/i18n';
 
 interface ZoneRescuedRegistryProps {
   zoneId: string;
@@ -21,6 +22,7 @@ const GENDER_OPTIONS: { key: RescuedPerson['gender']; label: string }[] = [
 ];
 
 const ZoneRescuedRegistry: React.FC<ZoneRescuedRegistryProps> = ({ zoneId, zoneName, rescuedPersons, onAddPerson }) => {
+  const { t } = useI18n();
   const [showForm, setShowForm] = useState(false);
   const [name, setName] = useState('');
   const [age, setAge] = useState('');
@@ -69,15 +71,15 @@ const ZoneRescuedRegistry: React.FC<ZoneRescuedRegistryProps> = ({ zoneId, zoneN
       <div className="zone-rescued-summary">
         <div className="zone-rescued-summary-item" style={{ borderColor: '#22C55E' }}>
           <span className="zone-rescued-summary-value" style={{ color: '#22C55E' }}>{goodCount}</span>
-          <span className="zone-rescued-summary-label">Buenos</span>
+          <span className="zone-rescued-summary-label">{t('rescued.goodCondition')}</span>
         </div>
         <div className="zone-rescued-summary-item" style={{ borderColor: '#F59E0B' }}>
           <span className="zone-rescued-summary-value" style={{ color: '#F59E0B' }}>{injuredCount}</span>
-          <span className="zone-rescued-summary-label">Heridos</span>
+          <span className="zone-rescued-summary-label">{t('rescued.injured')}</span>
         </div>
         <div className="zone-rescued-summary-item" style={{ borderColor: '#EF4444' }}>
           <span className="zone-rescued-summary-value" style={{ color: '#EF4444' }}>{criticalCount}</span>
-          <span className="zone-rescued-summary-label">Críticos</span>
+          <span className="zone-rescued-summary-label">{t('rescued.critical')}</span>
         </div>
       </div>
 
@@ -123,7 +125,7 @@ const ZoneRescuedRegistry: React.FC<ZoneRescuedRegistryProps> = ({ zoneId, zoneN
       {showForm ? (
         <div className="zone-rescued-form">
           <div className="form-group">
-            <label className="form-label">Nombre completo</label>
+            <label className="form-label">{t('rescued.formName')}</label>
             <input
               className="form-input"
               placeholder="Nombre de la persona rescatada"
@@ -133,7 +135,7 @@ const ZoneRescuedRegistry: React.FC<ZoneRescuedRegistryProps> = ({ zoneId, zoneN
           </div>
           <div className="form-row">
             <div className="form-group" style={{ flex: 1 }}>
-              <label className="form-label">Edad</label>
+              <label className="form-label">{t('rescued.formAge')}</label>
               <input
                 className="form-input"
                 type="number"
@@ -145,7 +147,7 @@ const ZoneRescuedRegistry: React.FC<ZoneRescuedRegistryProps> = ({ zoneId, zoneN
               />
             </div>
             <div className="form-group" style={{ flex: 1 }}>
-              <label className="form-label">Género</label>
+              <label className="form-label">{t('rescued.formGender')}</label>
               <select
                 className="form-select"
                 value={gender}
@@ -158,7 +160,7 @@ const ZoneRescuedRegistry: React.FC<ZoneRescuedRegistryProps> = ({ zoneId, zoneN
             </div>
           </div>
           <div className="form-group">
-            <label className="form-label">Condición</label>
+            <label className="form-label">{t('rescued.formCondition')}</label>
             <div className="zone-rescued-condition-select">
               {CONDITION_OPTIONS.map((opt) => (
                 <button
@@ -177,7 +179,7 @@ const ZoneRescuedRegistry: React.FC<ZoneRescuedRegistryProps> = ({ zoneId, zoneN
             </div>
           </div>
           <div className="form-group">
-            <label className="form-label">Notas (opcional)</label>
+            <label className="form-label">{t('rescued.formNotes')}</label>
             <textarea
               className="form-textarea"
               placeholder="Lesiones, necesidades médicas, destino..."
@@ -188,16 +190,16 @@ const ZoneRescuedRegistry: React.FC<ZoneRescuedRegistryProps> = ({ zoneId, zoneN
           </div>
           <div className="form-row">
             <button className="btn btn-primary" style={{ flex: 1 }} onClick={handleSubmit}>
-              ✅ Registrar Rescatado
+              {t('rescued.formSubmit')}
             </button>
             <button className="btn btn-secondary" style={{ flex: 1 }} onClick={() => setShowForm(false)}>
-              Cancelar
+              {t('form.cancel')}
             </button>
           </div>
         </div>
       ) : (
         <button className="zone-rescued-add-btn" onClick={() => setShowForm(true)}>
-          🚑 Registrar Persona Rescatada
+          {t('rescued.registerPerson')}
         </button>
       )}
     </div>

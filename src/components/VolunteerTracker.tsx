@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import type { VolunteerGroup, VolunteerMember, CheckInStatus } from '../types';
 import { SPECIALIZATION_LABELS, CHECKIN_STATUS_LABELS } from '../types';
+import { useI18n } from '../utils/i18n';
 
 const STORAGE_KEY = 'volunteer_groups';
 
@@ -80,6 +81,7 @@ function saveGroups(groups: VolunteerGroup[]) {
 }
 
 const VolunteerTracker: React.FC<VolunteerTrackerProps> = ({ zoneName }) => {
+  const { t } = useI18n();
   const [groups, setGroups] = useState<VolunteerGroup[]>(loadGroups);
   const [expandedGroup, setExpandedGroup] = useState<string | null>('vg1');
   const [showAddForm, setShowAddForm] = useState(false);
@@ -187,7 +189,7 @@ const VolunteerTracker: React.FC<VolunteerTrackerProps> = ({ zoneName }) => {
         <div className="volunteer-stats-grid">
           <div className="volunteer-stat">
             <div className="volunteer-stat-value">{totalMembers}</div>
-            <div className="volunteer-stat-label">Total</div>
+            <div className="volunteer-stat-label">{t('rescued.total')}</div>
           </div>
           <div className="volunteer-stat" style={{ borderColor: '#22C55E' }}>
             <div className="volunteer-stat-value" style={{ color: '#4ADE80' }}>{inZone}</div>

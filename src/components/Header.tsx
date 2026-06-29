@@ -8,13 +8,14 @@ import { isCloudConnected, isKVBound } from '../utils/storage';
 function SyncIndicator() {
   const [ok, setOk] = useState(false);
   const [kv, setKv] = useState(false);
+  const { t } = useI18n();
   useEffect(() => {
     const id = setInterval(() => { setOk(isCloudConnected()); setKv(isKVBound()); }, 3000);
     return () => clearInterval(id);
   }, []);
   if (!ok) return null;
   return (
-    <span className="sync-indicator" title={kv ? 'Sincronizado con la nube (KV)' : 'Solo almacenamiento local'}>
+    <span className="sync-indicator" title={kv ? t('header.syncCloud') : t('header.syncLocal')}>
       <span className={`sync-dot ${kv ? 'kv' : 'local'}`} />
       {kv ? '☁️' : '💾'}
     </span>
@@ -52,6 +53,8 @@ interface HeaderProps {
   isRescueMode: boolean;
   onToggleRescue: () => void;
   onAdminClick: () => void;
+  desktopMode: boolean;
+  onToggleDesktopMode: () => void;
 }
 
 const Header: React.FC<HeaderProps> = ({
@@ -59,7 +62,7 @@ const Header: React.FC<HeaderProps> = ({
   userCanEdit,
   onLoginClick, onLogout, onExportJSON, onExportCSV,
   onImportClick, onRescuedClick, isRescueMode, onToggleRescue,
-  onAdminClick,
+  onAdminClick, desktopMode, onToggleDesktopMode,
 }) => {
   const { t } = useI18n();
   const [dataOpen, setDataOpen] = useState(false);
@@ -96,6 +99,15 @@ const Header: React.FC<HeaderProps> = ({
       <div className="header-right">
         <LanguageSelector />
 
+        <button className="header-action-btn desktop-mode-toggle" onClick={onToggleDesktopMode} title={desktopMode ? 'Modo Móvil' : 'Modo Escritorio'}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            {desktopMode
+              ? <><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></>
+              : <><rect x="4" y="4" width="16" height="16" rx="2" ry="2"/><rect x="8" y="8" width="8" height="8" rx="1"/></>
+            }
+          </svg>
+        </button>
+
         <div className="header-dropdown" ref={dataRef}>
           <button className="header-action-btn" onClick={() => setDataOpen(!dataOpen)}>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -125,7 +137,7 @@ const Header: React.FC<HeaderProps> = ({
               </button>
               <button onClick={() => { window.open('/guia.html', '_blank'); setDataOpen(false); }}>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>
-                Guía
+                {t('btn.guide')}
               </button>
             </div>
           )}
@@ -137,7 +149,7 @@ const Header: React.FC<HeaderProps> = ({
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>
           </svg>
-          {isRescueMode ? t('btn.rescueMode') : 'Rescatista'}
+          {isRescueMode ? t('btn.rescueMode') : t('btn.rescueMode')}
         </button>
 
         {user ? (
@@ -162,15 +174,17 @@ const Header: React.FC<HeaderProps> = ({
           </button>
         )}
 
-        <button className={`mode-toggle ${isEditMode ? 'edit' : 'view'}`} onClick={onToggleMode}>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            {isEditMode
-              ? <><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></>
-              : <><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></>
-            }
-          </svg>
-          {isEditMode ? (userCanEdit ? t('btn.edit') : t('btn.addView')) : t('btn.readOnly')}
-        </button>
+        {user && (
+          <button className={`mode-toggle ${isEditMode ? 'edit' : 'view'}`} onClick={onToggleMode}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              {isEditMode
+                ? <><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></>
+                : <><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></>
+              }
+            </svg>
+            {isEditMode ? (userCanEdit ? t('btn.edit') : t('btn.addView')) : t('btn.readOnly')}
+          </button>
+        )}
 
         {userCanEdit && (
           <button className="header-action-btn" onClick={onAdminClick} title={t('btn.admin')}>

@@ -1,12 +1,14 @@
 import React from 'react';
 import { SEVERITY_COLORS } from '../utils/categories';
 import type { MapMarker } from '../types';
+import { useI18n } from '../utils/i18n';
 
 interface SiteStatusDashboardProps {
   marker: MapMarker;
 }
 
 const SiteStatusDashboard: React.FC<SiteStatusDashboardProps> = ({ marker }) => {
+  useI18n();
 
   // Calculate supply stats
   const totalSupplies = marker.supplies.length;

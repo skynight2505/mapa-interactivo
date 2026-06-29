@@ -1,5 +1,6 @@
 import React from 'react';
 import type { ZoneServices, ServiceStatus } from '../types';
+import { useI18n } from '../utils/i18n';
 
 interface ZoneServicesStatusProps {
   services: ZoneServices;
@@ -24,6 +25,7 @@ const SERVICE_ITEMS: { key: keyof ZoneServices; label: string; icon: string }[] 
 ];
 
 const ZoneServicesStatus: React.FC<ZoneServicesStatusProps> = ({ services, onUpdate, isEditMode }) => {
+  useI18n();
   const cycleStatus = (current: ServiceStatus): ServiceStatus => {
     const order: ServiceStatus[] = ['disponible', 'parcial', 'dañado', 'no_disponible'];
     const idx = order.indexOf(current);

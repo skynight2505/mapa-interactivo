@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import type { Supply } from '../types';
+import { useI18n } from '../utils/i18n';
 
 interface ZoneSuppliesManagerProps {
   supplies: Supply[];
@@ -31,6 +32,7 @@ const STATUS_OPTIONS: { key: Supply['status']; label: string; color: string }[] 
 ];
 
 const ZoneSuppliesManager: React.FC<ZoneSuppliesManagerProps> = ({ supplies, onUpdate }) => {
+  const { t } = useI18n();
   const [showAdd, setShowAdd] = useState(false);
   const [form, setForm] = useState<SupplyFormState>(INITIAL_FORM);
   const [showPresets, setShowPresets] = useState(false);
@@ -79,22 +81,22 @@ const ZoneSuppliesManager: React.FC<ZoneSuppliesManagerProps> = ({ supplies, onU
       <div className="zone-supplies-summary">
         <div className="zone-supplies-summary-item" style={{ borderColor: '#EF4444' }}>
           <span className="zone-supplies-summary-value" style={{ color: '#EF4444' }}>{needed}</span>
-          <span className="zone-supplies-summary-label">Necesitados</span>
+          <span className="zone-supplies-summary-label">{t('popup.needed')}</span>
         </div>
         <div className="zone-supplies-summary-item" style={{ borderColor: '#22C55E' }}>
           <span className="zone-supplies-summary-value" style={{ color: '#22C55E' }}>{available}</span>
-          <span className="zone-supplies-summary-label">Disponibles</span>
+          <span className="zone-supplies-summary-label">{t('popup.available')}</span>
         </div>
         <div className="zone-supplies-summary-item" style={{ borderColor: '#3B82F6' }}>
           <span className="zone-supplies-summary-value" style={{ color: '#3B82F6' }}>{delivered}</span>
-          <span className="zone-supplies-summary-label">Entregados</span>
+          <span className="zone-supplies-summary-label">{t('popup.delivered')}</span>
         </div>
       </div>
 
       <div className="zone-supplies-list">
         {supplies.length === 0 ? (
           <div className="zone-supplies-empty">
-            No hay insumos registrados. Agrega los que necesita esta zona.
+            {t('popup.noSupplies')}
           </div>
         ) : (
           supplies.map((supply) => {
@@ -131,7 +133,7 @@ const ZoneSuppliesManager: React.FC<ZoneSuppliesManagerProps> = ({ supplies, onU
       {showAdd ? (
         <div className="zone-supplies-form">
           <div className="form-group" style={{ position: 'relative' }}>
-            <label className="form-label">Insumo</label>
+            <label className="form-label">{t('form.supplyName')}</label>
             <input
               className="form-input"
               placeholder="Nombre del insumo"
@@ -156,7 +158,7 @@ const ZoneSuppliesManager: React.FC<ZoneSuppliesManagerProps> = ({ supplies, onU
           </div>
           <div className="form-row">
             <div className="form-group" style={{ flex: 1 }}>
-              <label className="form-label">Cantidad</label>
+              <label className="form-label">{t('form.quantity')}</label>
               <input
                 className="form-input"
                 type="number"
@@ -166,7 +168,7 @@ const ZoneSuppliesManager: React.FC<ZoneSuppliesManagerProps> = ({ supplies, onU
               />
             </div>
             <div className="form-group" style={{ flex: 1 }}>
-              <label className="form-label">Unidad</label>
+              <label className="form-label">{t('form.unit')}</label>
               <input
                 className="form-input"
                 placeholder="kg, L, caja..."
@@ -189,16 +191,16 @@ const ZoneSuppliesManager: React.FC<ZoneSuppliesManagerProps> = ({ supplies, onU
           </div>
           <div className="form-row">
             <button className="btn btn-primary" style={{ flex: 1 }} onClick={addSupply}>
-              ✅ Agregar
+              {t('popup.linkSubmit')}
             </button>
             <button className="btn btn-secondary" style={{ flex: 1 }} onClick={() => { setShowAdd(false); setShowPresets(false); }}>
-              Cancelar
+              {t('form.cancel')}
             </button>
           </div>
         </div>
       ) : (
         <button className="zone-supplies-add-btn" onClick={() => setShowAdd(true)}>
-          ➕ Agregar Insumo
+          {t('form.addSupply')}
         </button>
       )}
     </div>

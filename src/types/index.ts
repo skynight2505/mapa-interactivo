@@ -37,6 +37,11 @@ export const TERRAIN_LABELS: Record<TerrainType, { label: string; icon: string; 
   mixin: { label: 'Mixto', icon: '🔀', color: '#EC4899', desc: 'Zonas con combinación de terrenos' },
 };
 
+export interface MarkerTranslations {
+  title?: string;
+  description?: string;
+}
+
 export interface MapMarker {
   id: string;
   type: MarkerType;
@@ -53,6 +58,21 @@ export interface MapMarker {
   updatedAt: string;
   verified?: boolean;
   verifiedSource?: string;
+  translations?: Record<string, MarkerTranslations>;
+  images?: string[];
+  parentGroupId?: string;
+}
+
+// ===== GROUP ZONES =====
+export interface GroupZone {
+  id: string;
+  name: string;
+  description?: string;
+  lat: number;
+  lng: number;
+  markerIds: string[];
+  createdAt: string;
+  updatedAt: string;
 }
 
 // ===== PERSONAS RESCATADAS =====
@@ -72,6 +92,7 @@ export interface RescuedPerson {
   notes?: string;
   verified: boolean;
   verificationUrl?: string;
+  rescueLinks?: { label: string; url: string }[];
   createdAt: string;
 }
 

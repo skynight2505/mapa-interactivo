@@ -123,10 +123,12 @@ describe('RescuedExportPanel', () => {
     renderPanel({ onAddPerson });
     fireEvent.click(screen.getByText('➕ Registrar Persona Rescatada'));
     // Fill required form fields (name and zoneName both needed)
-    const inputs = document.querySelectorAll('input[placeholder="..."]');
-    if (inputs.length >= 2) {
+    const inputs = document.querySelectorAll('.rescued-add-form .form-input');
+    // inputs: [0]=name, [1]=age, [2]=zoneName, [3]=rescuedBy, [4]=lat, [5]=lng, [6]=verificationUrl
+    if (inputs.length >= 3) {
       fireEvent.change(inputs[0], { target: { value: 'Nueva Persona' } });
-      fireEvent.change(inputs[1], { target: { value: 'Zona Centro' } });
+      fireEvent.change(inputs[1], { target: { value: '25' } });
+      fireEvent.change(inputs[2], { target: { value: 'Zona Centro' } });
     }
     fireEvent.click(screen.getByText('✅ Registrar Persona'));
     expect(onAddPerson).toHaveBeenCalledOnce();

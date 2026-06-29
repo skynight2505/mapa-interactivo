@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import type { RescueLink, RescueLinkCategory } from '../types';
 import { RESCUE_LINK_CATEGORIES } from '../types';
 import { loadAllLinks, saveAllLinks } from '../utils/links';
+import { useI18n } from '../utils/i18n';
 
 interface ZoneLinksManagerProps {
   zoneId: string;
@@ -11,6 +12,7 @@ interface ZoneLinksManagerProps {
 const CATEGORY_ORDER: RescueLinkCategory[] = ['whatsapp', 'canal_informativo', 'pagina'];
 
 const ZoneLinksManager: React.FC<ZoneLinksManagerProps> = ({ zoneId, zoneName }) => {
+  const { t } = useI18n();
   const [links, setLinks] = useState<RescueLink[]>(loadAllLinks);
   const [showForm, setShowForm] = useState(false);
   const [title, setTitle] = useState('');
@@ -65,7 +67,7 @@ const ZoneLinksManager: React.FC<ZoneLinksManagerProps> = ({ zoneId, zoneName })
 
       {zoneLinks.length === 0 ? (
         <div className="zone-links-empty">
-          No hay enlaces registrados para esta zona.
+          {t('popup.noLinks')}
         </div>
       ) : (
         CATEGORY_ORDER.map((cat) => {
@@ -96,7 +98,7 @@ const ZoneLinksManager: React.FC<ZoneLinksManagerProps> = ({ zoneId, zoneName })
                   <button
                     className="zone-links-delete-btn"
                     onClick={() => handleDelete(link.id)}
-                    title="Eliminar enlace"
+                     title={t('sidebar.delete')}
                   >
                     ✕
                   </button>
@@ -110,7 +112,7 @@ const ZoneLinksManager: React.FC<ZoneLinksManagerProps> = ({ zoneId, zoneName })
       {showForm ? (
         <div className="zone-links-form">
           <div className="form-group">
-            <label className="form-label">Título</label>
+            <label className="form-label">{t('popup.linkTitle')}</label>
             <input
               className="form-input"
               placeholder="Ej: Rescate Zona Centro"
@@ -119,7 +121,7 @@ const ZoneLinksManager: React.FC<ZoneLinksManagerProps> = ({ zoneId, zoneName })
             />
           </div>
           <div className="form-group">
-            <label className="form-label">Enlace (URL)</label>
+            <label className="form-label">{t('popup.linkUrl')}</label>
             <input
               className="form-input"
               placeholder="https://chat.whatsapp.com/..."
@@ -128,7 +130,7 @@ const ZoneLinksManager: React.FC<ZoneLinksManagerProps> = ({ zoneId, zoneName })
             />
           </div>
           <div className="form-group">
-            <label className="form-label">Categoría</label>
+            <label className="form-label">{t('popup.linkCategory')}</label>
             <div className="zone-links-category-select">
               {CATEGORY_ORDER.map((cat) => {
                 const cfg = RESCUE_LINK_CATEGORIES[cat];
@@ -150,7 +152,7 @@ const ZoneLinksManager: React.FC<ZoneLinksManagerProps> = ({ zoneId, zoneName })
             </div>
           </div>
           <div className="form-group">
-            <label className="form-label">Descripción (opcional)</label>
+            <label className="form-label">{t('popup.linkDesc')}</label>
             <input
               className="form-input"
               placeholder="Breve descripción del grupo o canal"
@@ -160,16 +162,16 @@ const ZoneLinksManager: React.FC<ZoneLinksManagerProps> = ({ zoneId, zoneName })
           </div>
           <div className="form-row">
             <button className="btn btn-primary" style={{ flex: 1 }} onClick={handleAdd}>
-              ✅ Agregar Enlace
+              {t('popup.linkSubmit')}
             </button>
             <button className="btn btn-secondary" style={{ flex: 1 }} onClick={() => setShowForm(false)}>
-              Cancelar
+              {t('form.cancel')}
             </button>
           </div>
         </div>
       ) : (
         <button className="zone-links-add-btn" onClick={() => setShowForm(true)}>
-          🔗 Agregar Grupo o Canal
+          {t('popup.addLink')}
         </button>
       )}
     </div>
